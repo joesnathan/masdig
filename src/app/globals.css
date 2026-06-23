@@ -15,18 +15,18 @@
   --text-secondary: hsl(220, 12%, 36%);
   --text-muted: hsl(220, 8%, 56%);
   
-  --brand-crimson: hsl(356, 75%, 36%); /* Yogyakarta Brand Red - Premium HSL Crimson */
-  --brand-crimson-hover: hsl(356, 75%, 26%);
+  --brand-crimson: hsl(214, 82%, 51%); /* Yogyakarta Brand Blue - Version 2 Primary */
+  --brand-crimson-hover: hsl(214, 82%, 41%);
   --brand-gold: hsl(38, 77%, 56%);
   --brand-gold-hover: hsl(38, 77%, 46%);
   
-  --accent-blue: hsl(214, 82%, 52%);
+  --accent-blue: hsl(214, 82%, 51%);
   --accent-green: hsl(152, 69%, 31%);
   --accent-warning: hsl(45, 100%, 51%);
   --accent-danger: hsl(354, 70%, 54%);
   
   --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(229, 169, 59, 0.15);
+  --glass-border: rgba(26, 115, 232, 0.15);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.08);
@@ -50,8 +50,8 @@
   --text-secondary: hsl(210, 10%, 82%);
   --text-muted: hsl(210, 8%, 62%);
   
-  --brand-crimson: hsl(356, 85%, 48%);
-  --brand-crimson-hover: hsl(356, 85%, 58%);
+  --brand-crimson: hsl(214, 82%, 51%);
+  --brand-crimson-hover: hsl(214, 82%, 61%);
   
   --glass-bg: rgba(13, 16, 26, 0.75);
   --glass-border: rgba(255, 255, 255, 0.05);
@@ -312,7 +312,7 @@ p, span, li, button, input, textarea, select {
   border-radius: var(--radius-full);
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
   transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
   display: inline-flex;
   align-items: center;
@@ -322,7 +322,7 @@ p, span, li, button, input, textarea, select {
 
 .btn-premium:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(139, 0, 0, 0.3);
+  box-shadow: 0 8px 20px rgba(26, 115, 232, 0.3);
   background: var(--brand-crimson-hover);
 }
 

@@ -35,6 +35,7 @@ interface MobileHealthTabProps {
   setBookingDate: (val: string) => void;
   onBookHealth: () => void;
   uiMode: 'default' | 'lansia' | 'disabilitas';
+  onNavigate?: (tab: 'home' | 'mobilitas' | 'lingkungan' | 'kesehatan' | 'lapor' | 'layanan') => void;
 }
 
 // ----------------- SVG Icons Helper collection -----------------
@@ -60,19 +61,25 @@ const ClockIcon = () => (
   </svg>
 );
 
+const BackIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+);
+
 export default function MobileHealthTab({
   vehicles,
   drainageNodes,
   puddleReports,
   activeRoute,
   selectedClinic,
-  setSelectedClinic,
   selectedRoom,
   setSelectedRoom,
   bookingDate,
   setBookingDate,
   onBookHealth,
-  uiMode
+  uiMode,
+  onNavigate
 }: MobileHealthTabProps) {
   const [showAppointmentDrawer, setShowAppointmentDrawer] = useState(false);
   const [emergencyCallState, setEmergencyCallState] = useState<'idle' | 'countdown' | 'calling'>('idle');
@@ -87,43 +94,45 @@ export default function MobileHealthTab({
 
   // Active call duration counter
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (emergencyCallState === 'calling') {
-      interval = setInterval(() => {
-        setCallDuration(prev => prev + 1);
-      }, 1000);
-    } else {
-      setCallDuration(0);
-    }
+    if (emergencyCallState !== 'calling') return;
+    const interval = setInterval(() => {
+      setCallDuration(prev => prev + 1);
+    }, 1000);
     return () => clearInterval(interval);
   }, [emergencyCallState]);
 
   // Countdown timer for emergency call
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (emergencyCallState === 'countdown') {
-      if (emergencyTimer > 0) {
-        timer = setTimeout(() => {
-          setEmergencyTimer(prev => prev - 1);
-          speak(String(emergencyTimer - 1));
-        }, 1000);
-      } else {
-        setEmergencyCallState('calling');
-        speak("Menghubungi Pusat Layanan Ambulans Darurat Seratus Sembilan Belas DIY.");
-      }
-    } else {
-      setEmergencyTimer(3);
+    if (emergencyCallState !== 'countdown') return;
+    
+    if (emergencyTimer > 0) {
+      const timer = setTimeout(() => {
+        setEmergencyTimer(prev => {
+          const next = prev - 1;
+          if (next === 0) {
+            setEmergencyCallState('calling');
+            speak("Menghubungi Pusat Layanan Ambulans Darurat Seratus Sembilan Belas DIY.");
+          } else {
+            speak(String(next));
+          }
+          return next;
+        });
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-    return () => clearTimeout(timer);
   }, [emergencyCallState, emergencyTimer]);
 
   const handleStartEmergency = () => {
     setEmergencyCallState('countdown');
+    setEmergencyTimer(3);
+    setCallDuration(0);
     speak("Memulai panggilan darurat dalam tiga detik. Sentuh batalkan jika keliru.");
   };
 
   const handleCancelEmergency = () => {
     setEmergencyCallState('idle');
+    setEmergencyTimer(3);
+    setCallDuration(0);
     speak("Panggilan darurat dibatalkan.");
   };
 
@@ -151,107 +160,169 @@ export default function MobileHealthTab({
   };
 
   return (
-    <div className="animate-slide-up" style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    <div 
+      className="animate-slide-up" 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: '100%', 
+        position: 'relative',
+        background: '#F4F6F9',
+        boxSizing: 'border-box'
+      }}
+    >
       
-      {/* 1. Header Faskes Map */}
-      <div style={{ flex: '0 0 170px', position: 'relative', borderBottom: '1px solid var(--border-color)' }}>
-        <InteractiveMap
-          mode={uiMode}
-          vehicles={vehicles}
-          drainageNodes={drainageNodes}
-          puddleReports={puddleReports}
-          activeRoute={activeRoute}
-          selectedNodeId="puskesmas1"
-        />
-        
-        {/* Floating Actions overlay */}
-        <div style={{
-          position: 'absolute',
-          bottom: '10px',
-          left: '10px',
-          right: '10px',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '10px',
-          zIndex: 10
-        }}>
-          {/* Emergency 119 button */}
-          <button
-            onClick={handleStartEmergency}
-            style={{
-              background: '#ea4335',
-              color: 'white',
-              border: 'none',
-              padding: '8px 12px',
-              borderRadius: '20px',
-              fontSize: '10px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              boxShadow: '0 2px 8px rgba(234,67,53,0.3)'
-            }}
-          >
-            <PhoneIcon /> Darurat 119
-          </button>
+      {/* 1. Header block */}
+      <div 
+        style={{
+          background: 'linear-gradient(180deg, #1A73E8 0%, #1557B0 100%)',
+          padding: '20px 16px 20px 16px',
+          color: 'white',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          boxSizing: 'border-box',
+          boxShadow: '0 4px 15px rgba(26,115,232,0.12)'
+        }}
+      >
+        {/* Back Link */}
+        <div 
+          onClick={() => { if (onNavigate) onNavigate('home'); }}
+          style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', width: 'fit-content' }}
+        >
+          <BackIcon />
+          <span style={{ fontSize: '12px', fontWeight: 600 }}>Kembali</span>
+        </div>
 
-          {/* Appointment button */}
-          <button
-            onClick={() => {
-              setShowAppointmentDrawer(true);
-              speak("Membuka form pendaftaran antrean faskes.");
-            }}
-            style={{
-              background: '#1a73e8',
-              color: 'white',
-              border: 'none',
-              padding: '8px 12px',
-              borderRadius: '20px',
-              fontSize: '10px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              boxShadow: '0 2px 8px rgba(26,115,232,0.2)'
-            }}
-          >
-            <CalendarIcon /> Buat Janji
-          </button>
+        {/* Title & Subtitle */}
+        <div style={{ marginTop: '4px' }}>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
+            Kesehatan
+          </h2>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
+            Layanan kesehatan cerdas Yogyakarta
+          </span>
         </div>
       </div>
 
-      {/* 2. Health Info scroll section */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '80px' }}>
+      {/* 2. Scrollable Body Content */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '88px', boxSizing: 'border-box' }}>
         
+        {/* Peta Faskes Card */}
+        <div style={{
+          background: 'white',
+          borderRadius: '20px',
+          border: '1px solid #E0E0E0',
+          padding: '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+          boxSizing: 'border-box',
+          position: 'relative'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <strong style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              PETA FASILITAS KESEHATAN
+            </strong>
+          </div>
+          
+          <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #E0E0E0', position: 'relative' }}>
+            <InteractiveMap
+              mode={uiMode}
+              vehicles={vehicles}
+              drainageNodes={drainageNodes}
+              puddleReports={puddleReports}
+              activeRoute={activeRoute}
+              selectedNodeId="puskesmas1"
+            />
+            
+            {/* Floating Actions overlay */}
+            <div style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '10px',
+              right: '10px',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '10px',
+              zIndex: 10
+            }}>
+              {/* Emergency 119 button */}
+              <button
+                onClick={handleStartEmergency}
+                style={{
+                  background: '#ea4335',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 12px',
+                  borderRadius: '20px',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 8px rgba(234,67,53,0.3)'
+                }}
+              >
+                <PhoneIcon /> Darurat 119
+              </button>
+
+              {/* Appointment button */}
+              <button
+                onClick={() => {
+                  setShowAppointmentDrawer(true);
+                  speak("Membuka form pendaftaran antrean faskes.");
+                }}
+                style={{
+                  background: '#1A73E8',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 12px',
+                  borderRadius: '20px',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 8px rgba(26,115,232,0.2)'
+                }}
+              >
+                <CalendarIcon /> Buat Janji
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* RSUP Dr. Sardjito details */}
-        <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '12px 14px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+        <div style={{ background: 'white', borderRadius: '16px', padding: '14px', border: '1px solid #E0E0E0', boxShadow: '0 4px 10px rgba(0,0,0,0.02)' }}>
           <span style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>
             Kapasitas Pasien • 2.4 km
           </span>
-          <strong style={{ display: 'block', fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px', marginBottom: '2px' }}>
+          <strong style={{ display: 'block', fontSize: '14px', color: 'var(--text-primary)', marginTop: '2px', marginBottom: '2px', fontWeight: '800' }}>
             RSUP Dr. Sardjito
           </strong>
-          <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>
             Jl. Kesehatan No.1, Senayan, Sinduadi
           </span>
 
           {/* Metrics Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '10px' }}>
-            <div style={{ background: 'var(--bg-tertiary)', borderRadius: '8px', padding: '6px 4px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-              <strong style={{ display: 'block', fontSize: '12px', color: 'var(--text-primary)' }}>15</strong>
-              <span style={{ fontSize: '7px', color: 'var(--text-muted)' }}>Bed Tersedia</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '12px' }}>
+            <div style={{ background: '#F4F6F9', borderRadius: '10px', padding: '8px 4px', textAlign: 'center', border: '1px solid #E0E0E0' }}>
+              <strong style={{ display: 'block', fontSize: '13px', color: 'var(--text-primary)', fontWeight: '800' }}>15</strong>
+              <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Bed Tersedia</span>
             </div>
-            <div style={{ background: 'var(--bg-tertiary)', borderRadius: '8px', padding: '6px 4px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-              <strong style={{ display: 'block', fontSize: '12px', color: 'var(--accent-danger)' }}>4</strong>
-              <span style={{ fontSize: '7px', color: 'var(--text-muted)' }}>Kapasitas ICU</span>
+            <div style={{ background: '#FDF2F2', borderRadius: '10px', padding: '8px 4px', textAlign: 'center', border: '1px solid #FDE8E8' }}>
+              <strong style={{ display: 'block', fontSize: '13px', color: '#DE3737', fontWeight: '800' }}>4</strong>
+              <span style={{ fontSize: '8px', color: '#DE3737' }}>Kapasitas ICU</span>
             </div>
-            <div style={{ background: 'var(--bg-tertiary)', borderRadius: '8px', padding: '6px 4px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-              <strong style={{ display: 'block', fontSize: '12px', color: 'var(--text-primary)' }}>12m</strong>
-              <span style={{ fontSize: '7px', color: 'var(--text-muted)' }}>Pk. Tunggu</span>
+            <div style={{ background: '#F4F6F9', borderRadius: '10px', padding: '8px 4px', textAlign: 'center', border: '1px solid #E0E0E0' }}>
+              <strong style={{ display: 'block', fontSize: '13px', color: 'var(--text-primary)', fontWeight: '800' }}>12m</strong>
+              <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Pk. Tunggu</span>
             </div>
           </div>
         </div>
@@ -261,26 +332,26 @@ export default function MobileHealthTab({
           <div 
             onClick={() => setShowTicketModal(true)}
             style={{
-              background: 'linear-gradient(135deg, rgba(26,115,232,0.12) 0%, rgba(26,115,232,0.2) 100%)',
-              borderRadius: '12px',
-              padding: '12px 14px',
-              border: '1px solid var(--accent-blue)',
-              boxShadow: 'var(--shadow-sm)',
+              background: 'linear-gradient(135deg, rgba(26,115,232,0.08) 0%, rgba(26,115,232,0.15) 100%)',
+              borderRadius: '16px',
+              padding: '14px',
+              border: '1px solid rgba(26,115,232,0.3)',
+              boxShadow: '0 4px 10px rgba(26,115,232,0.05)',
               cursor: 'pointer'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <strong style={{ fontSize: '9px', color: 'var(--accent-blue)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <strong style={{ fontSize: '9px', color: '#1A73E8', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '800' }}>
                 Antrean Saya
               </strong>
-              <span style={{ fontSize: '8px', color: 'var(--accent-blue)', fontWeight: 'bold' }}>Lihat Tiket QR ›</span>
+              <span style={{ fontSize: '9px', color: '#1A73E8', fontWeight: 'bold' }}>Lihat Tiket QR ›</span>
             </div>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <div style={{
                 width: '42px',
                 height: '42px',
                 borderRadius: '50%',
-                background: 'var(--accent-blue)',
+                background: '#1A73E8',
                 color: 'white',
                 fontSize: '16px',
                 fontWeight: 'bold',
@@ -292,13 +363,13 @@ export default function MobileHealthTab({
                 {myQueue.code}
               </div>
               <div>
-                <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block' }}>
+                <strong style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'block', fontWeight: '700' }}>
                   {myQueue.specialty}
                 </strong>
-                <span style={{ fontSize: '9px', color: 'var(--text-secondary)', display: 'block', marginTop: '1px' }}>
+                <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block', marginTop: '1px' }}>
                   {myQueue.doctor}
                 </span>
-                <span style={{ fontSize: '8px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+                <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
                   Slot: {myQueue.slot} • Tanggal: {myQueue.date}
                 </span>
               </div>
@@ -309,10 +380,10 @@ export default function MobileHealthTab({
         {/* Doctor Schedules */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <strong style={{ fontSize: '11px', color: 'var(--text-primary)' }}>
+            <strong style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '700' }}>
               Jadwal Dokter Hari Ini
             </strong>
-            <span style={{ fontSize: '8px', color: 'var(--brand-crimson)', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => speak("Menampilkan seluruh jadwal dokter.")}>
+            <span style={{ fontSize: '9px', color: '#1A73E8', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => speak("Menampilkan seluruh jadwal dokter.")}>
               Lihat Semua
             </span>
           </div>
@@ -322,15 +393,15 @@ export default function MobileHealthTab({
               { name: 'dr. Budi Santoso, Sp.PD', specialty: 'Penyakit Dalam', time: '08:00 - 12:00', avatar: '👨‍⚕️' },
               { name: 'dr. Siti Aminah, Sp.A', specialty: 'Anak', time: '13:00 - 16:00', avatar: '👩‍⚕️' }
             ].map((d, index) => (
-              <div key={index} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={index} style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '12px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <span style={{ fontSize: '18px' }}>{d.avatar}</span>
                   <div>
-                    <strong style={{ fontSize: '10px', color: 'var(--text-primary)', display: 'block' }}>{d.name}</strong>
-                    <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>{d.specialty}</span>
+                    <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>{d.name}</strong>
+                    <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{d.specialty}</span>
                   </div>
                 </div>
-                <span style={{ fontSize: '8px', background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                <span style={{ fontSize: '9px', background: '#F4F6F9', color: 'var(--text-secondary)', padding: '3px 8px', borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', border: '1px solid #E0E0E0' }}>
                   <ClockIcon /> {d.time}
                 </span>
               </div>
@@ -340,7 +411,7 @@ export default function MobileHealthTab({
 
         {/* Nearest Facilities */}
         <div>
-          <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block', marginBottom: '8px' }}>
+          <strong style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'block', marginBottom: '8px', fontWeight: '700' }}>
             Fasilitas Terdekat
           </strong>
           
@@ -349,15 +420,15 @@ export default function MobileHealthTab({
               { name: 'Klinik Pratama Sehat', dist: '0.5 km', hours: 'Buka hingga 21:00' },
               { name: 'Puskesmas Depok I', dist: '1.2 km', hours: 'Buka 24 Jam' }
             ].map((f, index) => (
-              <div key={index} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={index} style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '12px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <span style={{ fontSize: '16px' }}>🏥</span>
                   <div>
-                    <strong style={{ fontSize: '10px', color: 'var(--text-primary)', display: 'block' }}>{f.name}</strong>
-                    <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>{f.dist}</span>
+                    <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>{f.name}</strong>
+                    <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{f.dist}</span>
                   </div>
                 </div>
-                <span style={{ fontSize: '8px', color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>
                   {f.hours}
                 </span>
               </div>
@@ -376,7 +447,7 @@ export default function MobileHealthTab({
           width: '100%',
           height: '100%',
           background: 'rgba(0,0,0,0.5)',
-          zIndex: 100,
+          zIndex: 1000,
           display: 'flex',
           alignItems: 'flex-end',
           animation: 'fade-in 0.2s ease'
@@ -419,7 +490,7 @@ export default function MobileHealthTab({
                 className="modern-input" 
                 style={{ padding: '8px', fontSize: '11px' }}
               >
-                <option value="Umum">Poli Penyakit Dalam (Dalam Negeri)</option>
+                <option value="Umum">Poli Penyakit Dalam</option>
                 <option value="Gigi">Poli Gigi & Mulut</option>
                 <option value="Anak">Poli Spesialis Anak</option>
               </select>
@@ -489,116 +560,207 @@ export default function MobileHealthTab({
           left: 0,
           width: '100%',
           height: '100%',
-          background: '#ea4335',
+          background: '#D50000',
           color: 'white',
           zIndex: 2000,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: '24px'
+          boxSizing: 'border-box',
+          padding: '24px',
+          overflowY: 'auto'
         }}>
-          {emergencyCallState === 'countdown' ? (
-            <>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'white', marginBottom: '8px', letterSpacing: '-0.5px' }}>
-                PANGGILAN DARURAT
-              </div>
-              <div style={{ fontSize: '10px', opacity: 0.9, marginBottom: '60px' }}>
-                Menghubungi Ambulans 119 Yogyakarta...
-              </div>
+          {/* Header block with Back button */}
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', marginTop: '12px', marginBottom: '40px' }}>
+            <div 
+              onClick={handleCancelEmergency}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+            >
+              <BackIcon />
+              <span style={{ fontSize: '12px', fontWeight: 600 }}>Kembali</span>
+            </div>
+          </div>
 
-              {/* Countdown circle */}
+          {/* Central circle with phone and 119 */}
+          <div style={{
+            width: '130px',
+            height: '130px',
+            borderRadius: '50%',
+            border: '4px solid rgba(255,255,255,0.2)',
+            background: 'rgba(255,255,255,0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            marginBottom: '24px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+            position: 'relative'
+          }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+            <strong style={{ fontSize: '26px', fontWeight: '800', color: 'white', letterSpacing: '-0.5px' }}>119</strong>
+
+            {emergencyCallState === 'countdown' && (
               <div style={{
-                width: '140px',
-                height: '140px',
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                background: '#FBBC05',
+                color: 'black',
+                width: '28px',
+                height: '28px',
                 borderRadius: '50%',
-                background: 'rgba(255,255,255,0.15)',
-                border: '4px solid white',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '52px',
+                fontSize: '13px',
                 fontWeight: 'bold',
-                marginBottom: '80px',
-                animation: 'pulse-ring 1s infinite'
+                boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                border: '2px solid white'
               }}>
                 {emergencyTimer}
               </div>
+            )}
+          </div>
 
-              <button
-                onClick={handleCancelEmergency}
-                style={{
-                  background: 'var(--bg-secondary)',
-                  color: '#ea4335',
-                  border: 'none',
-                  padding: '12px 40px',
-                  borderRadius: '30px',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
-                }}
-              >
-                Batalkan
-              </button>
-            </>
+          <h2 style={{ fontSize: '24px', fontWeight: '800', margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
+            Darurat 119
+          </h2>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '4px', marginBottom: '32px' }}>
+            {emergencyCallState === 'countdown' ? `Memulai panggilan dalam ${emergencyTimer} detik...` : 'Tekan tombol untuk memanggil bantuan'}
+          </span>
+
+          {/* Action button */}
+          {emergencyCallState === 'countdown' ? (
+            <button
+              onClick={() => {
+                setEmergencyCallState('calling');
+                speak("Menghubungi Ambulans 119.");
+              }}
+              style={{
+                width: '100%',
+                background: 'white',
+                color: '#D50000',
+                border: 'none',
+                padding: '14px',
+                borderRadius: '24px',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                marginBottom: '4px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              🚨 Hubungi Sekarang (Lewati {emergencyTimer}s)
+            </button>
           ) : (
-            <>
-              <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'white', marginBottom: '6px', letterSpacing: '-0.3px' }}>
-                AMBULANS DARURAT 119
-              </div>
-              <div style={{ fontSize: '11px', color: '#ffcdd2', fontWeight: 'bold', marginBottom: '60px' }}>
-                SEDANG BERLANGSUNG ({formatDuration(callDuration)})
-              </div>
-
-              {/* Animated Waveform Bars */}
-              <div style={{ display: 'flex', gap: '8px', height: '60px', alignItems: 'center', marginBottom: '80px' }}>
-                {[
-                  { delay: '0.1s', height: '40px' },
-                  { delay: '0.4s', height: '60px' },
-                  { delay: '0.2s', height: '30px' },
-                  { delay: '0.6s', height: '50px' },
-                  { delay: '0.3s', height: '40px' },
-                  { delay: '0.5s', height: '20px' }
-                ].map((bar, idx) => (
-                  <div 
-                    key={idx} 
-                    style={{
-                      width: '6px',
-                      height: bar.height,
-                      background: 'white',
-                      borderRadius: '3px',
-                      animation: `pulse 1.2s infinite ${bar.delay} ease-in-out`
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* End Call Button */}
-              <button
-                onClick={() => {
-                  setEmergencyCallState('idle');
-                  speak("Panggilan darurat selesai.");
-                }}
-                style={{
-                  background: '#37474f',
-                  color: 'white',
-                  border: 'none',
-                  padding: '12px 40px',
-                  borderRadius: '30px',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                📞 Akhiri Panggilan
-              </button>
-            </>
+            <button
+              onClick={() => {
+                setEmergencyCallState('idle');
+                speak("Panggilan darurat ambulans selesai.");
+              }}
+              style={{
+                width: '100%',
+                background: 'white',
+                color: '#D50000',
+                border: 'none',
+                padding: '14px',
+                borderRadius: '24px',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                marginBottom: '4px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              Hubungi 119 ({formatDuration(callDuration)})
+            </button>
           )}
+
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px', marginBottom: '12px' }}>
+            {/* Sardjito Card */}
+            <div 
+              onClick={() => speak("Menghubungi Ambulans Rumah Sakit Sardjito di nomor nol dua tujuh empat, lima delapan tujuh tiga tiga tiga.")}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <span style={{ fontSize: '18px' }}>🚑</span>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '11px', color: 'white' }}>Ambulans RSUP Sardjito</strong>
+                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)' }}>(0274) 587333</span>
+                </div>
+              </div>
+              <span style={{ fontSize: '14px' }}>📞</span>
+            </div>
+
+            {/* Damkar Card */}
+            <div 
+              onClick={() => speak("Menghubungi Pemadam Kebakaran di nomor seratus tiga belas.")}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <span style={{ fontSize: '18px' }}>🚒</span>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '11px', color: 'white' }}>Pemadam Kebakaran</strong>
+                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)' }}>113</span>
+                </div>
+              </div>
+              <span style={{ fontSize: '14px' }}>📞</span>
+            </div>
+
+            {/* Police Card */}
+            <div 
+              onClick={() => speak("Menghubungi Kepolisian di nomor seratus sepuluh.")}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <span style={{ fontSize: '18px' }}>👮</span>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '11px', color: 'white' }}>Kepolisian</strong>
+                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)' }}>110</span>
+                </div>
+              </div>
+              <span style={{ fontSize: '14px' }}>📞</span>
+            </div>
+          </div>
+
         </div>
       )}
 

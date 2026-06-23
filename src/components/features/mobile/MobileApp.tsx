@@ -8,7 +8,6 @@ import MobileMobilityTab from './MobileMobilityTab';
 import MobileEnvironmentTab from './MobileEnvironmentTab';
 import MobileHealthTab from './MobileHealthTab';
 import MobileReportTab from './MobileReportTab';
-import MobileAnalyticsTab from './MobileAnalyticsTab';
 
 interface MapNode {
   id: string;
@@ -77,7 +76,7 @@ interface MobileAppProps {
   setPassword: (password: string) => void;
   showPassword: boolean;
   setShowPassword: (show: boolean) => void;
-  onLoginSubmit: (e: React.FormEvent) => void;
+  onLoginSubmit: (e?: React.FormEvent) => void;
   onGuestLogin: () => void;
 
   // Transit state
@@ -174,10 +173,10 @@ const LayananNavIcon = () => (
   </svg>
 );
 
-const BellNavIcon = () => (
+const SettingsNavIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
   </svg>
 );
 
@@ -185,6 +184,7 @@ export default function MobileApp(props: MobileAppProps) {
   // Tabs: 'home' (Beranda), 'mobilitas', 'kesehatan', 'lapor', 'layanan' (Layanan/Analytics), 'lingkungan' (Environment Subview)
   const [activeTab, setActiveTab] = useState<'home' | 'mobilitas' | 'lingkungan' | 'kesehatan' | 'lapor' | 'layanan'>('home');
   const [activeDrawer, setActiveDrawer] = useState<'more' | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   const handleUiModeSelect = (newMode: 'default' | 'lansia' | 'disabilitas', label: string) => {
     props.setUiMode(newMode);
@@ -198,13 +198,137 @@ export default function MobileApp(props: MobileAppProps) {
       props.setFontSize('font-scale-large');
       props.setVoiceEnabled(false);
     } else {
-      props.setTheme('dark');
+      props.setTheme('light');
       props.setFontSize('font-scale-medium');
       props.setVoiceEnabled(false);
     }
   };
 
   if (!props.isLoggedIn) {
+    if (showSplash) {
+      return (
+        <div 
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            height: '100%', 
+            width: '100%', 
+            background: '#1A73E8', 
+            padding: '40px 24px 24px 24px',
+            boxSizing: 'border-box',
+            justifyContent: 'space-between',
+            position: 'relative',
+            overflow: 'hidden',
+            color: 'white'
+          }}
+        >
+          {/* Ambient Arcs */}
+          <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.08)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: '15%', left: '-15%', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.06)', pointerEvents: 'none' }} />
+
+          {/* Tugu Vector Art in Center */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', marginBottom: 'auto', gap: '20px', width: '100%', zIndex: 5 }}>
+            <svg width="120" height="200" viewBox="0 0 120 200" fill="none" style={{ filter: 'drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.15))' }}>
+              {/* Dots / Lines Background */}
+              <circle cx="20" cy="80" r="2" fill="#00E676" opacity="0.8"/>
+              <line x1="20" y1="80" x2="60" y2="100" stroke="#ffffff" strokeWidth="0.5" strokeDasharray="2" opacity="0.5"/>
+              <circle cx="100" cy="90" r="2.5" fill="#00E676" opacity="0.8"/>
+              <line x1="100" y1="90" x2="60" y2="110" stroke="#ffffff" strokeWidth="0.5" strokeDasharray="2" opacity="0.5"/>
+              <circle cx="15" cy="140" r="2" fill="white" opacity="0.6"/>
+              <circle cx="105" cy="120" r="2" fill="white" opacity="0.6"/>
+
+              {/* Flame top */}
+              <path d="M60 25 C62 35, 68 40, 60 50 C52 40, 58 35, 60 25 Z" fill="#FFD700" />
+              <circle cx="60" cy="45" r="3" fill="#ffffff"/>
+              <circle cx="60" cy="45" r="7" stroke="#ffffff" strokeWidth="1.5" opacity="0.8"/>
+              
+              {/* Pillar Body */}
+              <rect x="56" y="58" width="8" height="85" rx="2" fill="#E8F0FE" />
+              <line x1="56" y1="65" x2="64" y2="65" stroke="#1A73E8" strokeWidth="1.5"/>
+              <line x1="56" y1="135" x2="64" y2="135" stroke="#1A73E8" strokeWidth="1.5"/>
+              
+              {/* Steps pedestal base */}
+              <rect x="52" y="143" width="16" height="8" rx="1" fill="#D2E3FC" />
+              <rect x="47" y="151" width="26" height="8" rx="1.5" fill="#8AB4F8" />
+              <rect x="40" y="159" width="40" height="10" rx="2" fill="#669DF6" />
+            </svg>
+
+            {/* App Branding */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: 'rgba(255, 255, 255, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+              </div>
+              <h1 style={{ fontSize: '32px', fontWeight: 800, margin: 0, letterSpacing: '-1.0px', color: 'white' }}>
+                JogjaOne
+              </h1>
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.85)', margin: '0 0 4px 0', fontWeight: 500 }}>
+                Satu Layanan Kota Cerdas
+              </p>
+              <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)', margin: 0 }}>
+                Yogyakarta
+              </p>
+            </div>
+
+            {/* Pagination Dots */}
+            <div style={{ display: 'flex', gap: '6px', marginTop: '12px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.3)' }}></span>
+              <span style={{ width: '12px', height: '6px', borderRadius: '3px', background: 'white' }}></span>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.3)' }}></span>
+            </div>
+          </div>
+
+          {/* Bottom Actions */}
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px', zIndex: 5 }}>
+            <button
+              onClick={() => {
+                speak("Selamat datang di JogjaOne. Silakan masuk ke akun Anda.");
+                setShowSplash(false);
+              }}
+              style={{
+                width: '100%',
+                background: '#white',
+                backgroundColor: 'white',
+                color: '#1A73E8',
+                padding: '14px',
+                borderRadius: '16px',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              Mulai <span style={{ fontSize: '16px', fontWeight: 'bold' }}>→</span>
+            </button>
+            <div style={{ textAlign: 'center', fontSize: '9px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: 500 }}>
+              v2.0 · Smart City Yogyakarta
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div 
         style={{ 
@@ -212,86 +336,143 @@ export default function MobileApp(props: MobileAppProps) {
           flexDirection: 'column', 
           height: '100%', 
           width: '100%', 
-          background: 'linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)', 
-          padding: '40px 24px 24px 24px',
+          background: '#F4F6F9', 
           boxSizing: 'border-box',
-          justifyContent: 'space-between',
           position: 'relative',
           overflowY: 'auto'
         }}
       >
-        {/* Top Accent / Logo area */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px', gap: '12px' }}>
-          {/* Logo Circle */}
-          <div style={{ 
-            width: '64px', 
-            height: '64px', 
-            borderRadius: '20px', 
-            background: 'linear-gradient(135deg, var(--brand-crimson) 0%, hsl(356, 75%, 20%) 100%)', 
-            boxShadow: 'var(--shadow-md)',
+        {/* Blue Top Header Block */}
+        <div style={{
+          width: '100%',
+          height: '240px',
+          background: 'linear-gradient(180deg, #1A73E8 0%, #1557B0 100%)',
+          borderBottomLeftRadius: '32px',
+          borderBottomRightRadius: '32px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          padding: '20px',
+          boxSizing: 'border-box',
+          color: 'white',
+          boxShadow: '0 4px 20px rgba(26,115,232,0.15)'
+        }}>
+          {/* Logo with light blue border */}
+          <div style={{
+            width: '54px',
+            height: '54px',
+            borderRadius: '16px',
+            background: 'rgba(255, 255, 255, 0.15)',
+            border: '1.5px solid rgba(255, 255, 255, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            border: '2px solid var(--brand-gold)',
-            animation: 'float-animation 4s ease-in-out infinite'
+            marginBottom: '12px'
           }}>
-            <span style={{ fontSize: '28px' }}>👑</span>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.5px' }}>
-              JogjaOne
-            </h1>
-            <span style={{ fontSize: '8.5px', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '2px', display: 'block' }}>
-              Satu Layanan Kota Cerdas
-            </span>
-          </div>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'white', margin: 0, letterSpacing: '-0.5px' }}>
+            JogjaOne
+          </h1>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', marginTop: '4px' }}>
+            Masuk ke akun Anda
+          </span>
         </div>
 
-        {/* Form area */}
+        {/* Floating Form Overlay Card */}
         <form 
           onSubmit={props.onLoginSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%', margin: '20px 0' }}
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '16px', 
+            width: '90%', 
+            margin: '-40px auto 20px auto', 
+            background: 'white',
+            borderRadius: '24px',
+            padding: '24px 20px',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
+            boxSizing: 'border-box',
+            zIndex: 10
+          }}
         >
+          {/* User ID Field */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>NAMA PENGGUNA / NIK</label>
-            <input 
-              type="text"
-              placeholder="Masukkan NIK atau username"
-              value={props.username}
-              onChange={(e) => props.setUsername(e.target.value)}
-              className="modern-input"
-              style={{
-                padding: '10px 12px',
-                borderRadius: '10px',
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-primary)',
-                fontSize: '11px',
-                outline: 'none',
-                width: '100%'
-              }}
-              required
-            />
+            <label style={{ fontSize: '9px', fontWeight: '800', color: 'var(--text-secondary)', letterSpacing: '0.3px' }}>
+              NIK / USERNAME
+            </label>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: '#F4F6F9',
+              borderRadius: '12px',
+              padding: '2px 14px',
+              border: '1px solid #E0E0E0'
+            }}>
+              <span style={{ display: 'flex', alignItems: 'center' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#888888" strokeWidth="2.5">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </span>
+              <input 
+                type="text"
+                placeholder="Masukkan NIK atau username"
+                value={props.username}
+                onChange={(e) => props.setUsername(e.target.value)}
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  background: 'none',
+                  padding: '10px 0',
+                  fontSize: '12px',
+                  width: '100%',
+                  color: 'var(--text-primary)'
+                }}
+                required
+              />
+            </div>
           </div>
 
+          {/* Password Field */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>KATA SANDI</label>
-            <div style={{ position: 'relative', width: '100%' }}>
+            <label style={{ fontSize: '9px', fontWeight: '800', color: 'var(--text-secondary)', letterSpacing: '0.3px' }}>
+              PASSWORD
+            </label>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: '#F4F6F9',
+              borderRadius: '12px',
+              padding: '2px 14px',
+              border: '1px solid #E0E0E0',
+              position: 'relative'
+            }}>
+              <span style={{ display: 'flex', alignItems: 'center' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#888888" strokeWidth="2.5">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </span>
               <input 
                 type={props.showPassword ? 'text' : 'password'}
-                placeholder="Masukkan kata sandi"
+                placeholder="••••••••"
                 value={props.password}
                 onChange={(e) => props.setPassword(e.target.value)}
-                className="modern-input"
                 style={{
-                  padding: '10px 36px 10px 12px',
-                  borderRadius: '10px',
-                  background: 'var(--bg-tertiary)',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-primary)',
-                  fontSize: '11px',
+                  border: 'none',
                   outline: 'none',
-                  width: '100%'
+                  background: 'none',
+                  padding: '10px 0',
+                  fontSize: '12px',
+                  width: 'calc(100% - 24px)',
+                  color: 'var(--text-primary)'
                 }}
                 required
               />
@@ -301,25 +482,22 @@ export default function MobileApp(props: MobileAppProps) {
                 style={{
                   position: 'absolute',
                   right: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
                   background: 'none',
                   border: 'none',
-                  color: 'var(--text-muted)',
+                  color: '#888888',
                   cursor: 'pointer',
-                  fontSize: '12px',
+                  padding: 0,
                   display: 'flex',
-                  alignItems: 'center',
-                  padding: 0
+                  alignItems: 'center'
                 }}
               >
                 {props.showPassword ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                     <line x1="1" y1="1" x2="23" y2="23" />
                   </svg>
                 ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
@@ -327,98 +505,107 @@ export default function MobileApp(props: MobileAppProps) {
               </button>
             </div>
           </div>
+        </form>
 
+        {/* Main Action Buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '90%', margin: '0 auto' }}>
           <button
-            type="submit"
-            className="btn-premium"
+            onClick={() => props.onLoginSubmit()}
             style={{
-              padding: '11px',
-              borderRadius: '20px',
-              fontSize: '11px',
+              width: '100%',
+              background: '#1A73E8',
+              color: 'white',
+              border: 'none',
+              padding: '14px',
+              borderRadius: '16px',
+              fontSize: '13px',
               fontWeight: 'bold',
-              letterSpacing: '0.5px',
-              marginTop: '4px',
-              boxShadow: '0 4px 12px rgba(169, 29, 34, 0.2)',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(26,115,232,0.2)'
             }}
           >
             Masuk Layanan Cerdas
           </button>
-
+          
           <button
-            type="button"
             onClick={props.onGuestLogin}
             style={{
-              background: 'transparent',
-              border: '1px solid var(--border-color)',
-              color: 'var(--text-primary)',
-              padding: '10px',
-              borderRadius: '20px',
-              fontSize: '11px',
+              width: '100%',
+              background: 'white',
+              color: '#333',
+              border: '1px solid #E0E0E0',
+              padding: '14px',
+              borderRadius: '16px',
+              fontSize: '13px',
               fontWeight: 'bold',
               cursor: 'pointer',
-              transition: 'background 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px'
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
           >
-            Masuk Sebagai Tamu / Guest
+            Masuk Sebagai Tamu
           </button>
-        </form>
+        </div>
 
-        {/* Accessibility quick triggers */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-            <button
+        {/* Akses Khusus Section */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px', width: '100%', boxSizing: 'border-box' }}>
+          <span style={{ fontSize: '9px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', textAlign: 'center' }}>
+            Akses Khusus
+          </span>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '0 5%', boxSizing: 'border-box', marginBottom: '24px' }}>
+            {/* Lansia Mode Trigger */}
+            <div 
               onClick={() => handleUiModeSelect('lansia', 'Lansia')}
               style={{
-                flex: 1,
-                padding: '9px',
-                borderRadius: '10px',
-                background: props.uiMode === 'lansia' ? 'var(--brand-gold)' : 'var(--bg-tertiary)',
-                color: props.uiMode === 'lansia' ? 'black' : 'var(--text-primary)',
-                border: '1px solid var(--border-color)',
-                fontSize: '8.5px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
+                background: 'white',
+                borderRadius: '20px',
+                padding: '18px 12px',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '4px',
-                transition: 'all 0.2s'
+                cursor: 'pointer',
+                border: props.uiMode === 'lansia' ? '2px solid #1A73E8' : '1px solid #E0E0E0',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                gap: '8px'
               }}
             >
-              👴 Lansia
-            </button>
-            <button
+              <span style={{ fontSize: '28px' }}>👴</span>
+              <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Lansia</strong>
+              <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Tampilan besar</span>
+            </div>
+
+            {/* Difabel Mode Trigger */}
+            <div 
               onClick={() => handleUiModeSelect('disabilitas', 'Difabel')}
               style={{
-                flex: 1,
-                padding: '9px',
-                borderRadius: '10px',
-                background: props.uiMode === 'disabilitas' ? 'var(--accent-green)' : 'var(--bg-tertiary)',
-                color: props.uiMode === 'disabilitas' ? 'white' : 'var(--text-primary)',
-                border: '1px solid var(--border-color)',
-                fontSize: '8.5px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
+                background: 'white',
+                borderRadius: '20px',
+                padding: '18px 12px',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '4px',
-                transition: 'all 0.2s'
+                cursor: 'pointer',
+                border: props.uiMode === 'disabilitas' ? '2px solid #1A73E8' : '1px solid #E0E0E0',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                gap: '8px'
               }}
             >
-              ♿ Difabel
-            </button>
-          </div>
-          
-          <div style={{ textAlign: 'center', fontSize: '8px', color: 'var(--text-muted)' }}>
-            Layanan Smart City Pemerintah Daerah D.I. Yogyakarta
+              <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                background: '#1A73E8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <span style={{ fontSize: '18px', color: 'white', fontWeight: 'bold' }}>♿</span>
+              </div>
+              <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Difabel</strong>
+              <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Akses asistif</span>
+            </div>
           </div>
         </div>
       </div>
@@ -486,7 +673,7 @@ export default function MobileApp(props: MobileAppProps) {
               justifyContent: 'center'
             }}
           >
-            <BellNavIcon />
+            <SettingsNavIcon />
           </button>
         </header>
       )}
@@ -501,6 +688,8 @@ export default function MobileApp(props: MobileAppProps) {
             }}
             tickets={props.tickets}
             v2xActive={props.v2xActive}
+            username={props.username}
+            sampahBalance={props.sampahBalance}
           />
         )}
 
@@ -515,12 +704,17 @@ export default function MobileApp(props: MobileAppProps) {
             v2xTimeRemaining={props.v2xTimeRemaining}
             triggerV2X={props.triggerV2X}
             uiMode={props.uiMode}
+            onNavigate={(tab) => {
+              setActiveTab(tab);
+              speak(`Membuka halaman ${tab}`);
+            }}
           />
         )}
 
         {activeTab === 'lingkungan' && (
           <MobileEnvironmentTab
             vehicles={props.vehicles}
+            setVehicles={props.setVehicles}
             drainageNodes={props.drainageNodes}
             puddleReports={props.puddleReports}
             activeRoute={props.activeRoute}
@@ -529,6 +723,10 @@ export default function MobileApp(props: MobileAppProps) {
             sampahBalance={props.sampahBalance}
             setSampahBalance={props.setSampahBalance}
             uiMode={props.uiMode}
+            onNavigate={(tab) => {
+              setActiveTab(tab);
+              speak(`Membuka halaman ${tab}`);
+            }}
           />
         )}
 
@@ -546,6 +744,10 @@ export default function MobileApp(props: MobileAppProps) {
             setBookingDate={props.setBookingDate}
             onBookHealth={props.onBookHealth}
             uiMode={props.uiMode}
+            onNavigate={(tab) => {
+              setActiveTab(tab);
+              speak(`Membuka halaman ${tab}`);
+            }}
           />
         )}
 
@@ -556,15 +758,60 @@ export default function MobileApp(props: MobileAppProps) {
             puddleReports={props.puddleReports}
             setPuddleReports={props.setPuddleReports}
             uiMode={props.uiMode}
+            onNavigate={(tab) => {
+              setActiveTab(tab);
+              speak(`Membuka halaman ${tab}`);
+            }}
           />
         )}
 
-        {activeTab === 'layanan' && (
-          <MobileAnalyticsTab
-            uiMode={props.uiMode}
-          />
-        )}
       </div>
+
+      {/* Floating emergency button - fixed at app level */}
+      {['home', 'mobilitas', 'lingkungan', 'lapor'].includes(activeTab) && (
+        <button 
+          onClick={() => {
+            speak("Membuka menu Panggilan Darurat Medis Ambulans 119.");
+            setActiveTab('kesehatan');
+          }}
+          style={{
+            position: 'absolute',
+            bottom: '76px',
+            right: '16px',
+            width: '54px',
+            height: '54px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #FF1744 0%, #D50000 100%)',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 8px 24px rgba(213,0,0,0.3)',
+            zIndex: 99
+          }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+          <div style={{
+            position: 'absolute',
+            top: '-4px',
+            right: '-4px',
+            background: '#FF0000',
+            color: 'white',
+            borderRadius: '10px',
+            padding: '2px 5px',
+            fontSize: '7.5px',
+            fontWeight: '900',
+            border: '1.5px solid white',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            lineHeight: 1
+          }}>
+            119
+          </div>
+        </button>
+      )}
 
       {/* 3. BOTTOM TAB NAVIGATION BAR */}
       <nav 
@@ -619,10 +866,10 @@ export default function MobileApp(props: MobileAppProps) {
         </button>
  
         <button 
-          onClick={() => { setActiveTab('layanan'); speak("Tab Layanan"); }} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'layanan' || activeTab === 'lingkungan' ? 'var(--accent-blue)' : 'var(--text-muted)', fontSize: 'calc(8.5px * var(--font-scale))', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: activeTab === 'layanan' || activeTab === 'lingkungan' ? 'bold' : 'normal' }}
+          onClick={() => { setActiveTab('lingkungan'); speak("Tab Layanan"); }} 
+          style={{ background: 'none', border: 'none', color: activeTab === 'lingkungan' ? 'var(--accent-blue)' : 'var(--text-muted)', fontSize: 'calc(8.5px * var(--font-scale))', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: activeTab === 'lingkungan' ? 'bold' : 'normal' }}
         >
-          <span style={{ display: 'flex', color: activeTab === 'layanan' || activeTab === 'lingkungan' ? 'var(--accent-blue)' : 'var(--text-muted)' }}><LayananNavIcon /></span>
+          <span style={{ display: 'flex', color: activeTab === 'lingkungan' ? 'var(--accent-blue)' : 'var(--text-muted)' }}><LayananNavIcon /></span>
           Layanan
         </button>
       </nav>

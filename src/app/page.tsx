@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect } from 'react';
 import MobileApp from '@/components/features/mobile/MobileApp';
-import LoginView from '@/components/features/login/LoginView';
 
 import { speak, setSpeechEnabled } from '@/utils/speech';
 
@@ -46,7 +45,7 @@ export default function HomePage() {
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const [theme, setTheme] = useState<string>('dark');
+  const [theme, setTheme] = useState<string>('light');
   const [fontSize, setFontSize] = useState<string>('font-scale-medium');
   const [uiMode, setUiMode] = useState<'default' | 'lansia' | 'disabilitas'>('default');
   const [voiceEnabled, setVoiceEnabled] = useState<boolean>(false);
@@ -284,7 +283,7 @@ export default function HomePage() {
       setVoiceEnabled(false);
       setSpeechEnabled(false);
     } else {
-      setTheme('dark');
+      setTheme('light');
       setFontSize('font-scale-medium');
       setVoiceEnabled(false);
       setSpeechEnabled(false);
@@ -630,50 +629,109 @@ export default function HomePage() {
         alignItems: 'center', 
         minHeight: '100vh', 
         width: '100%', 
-        background: 'radial-gradient(circle at center, #2e303f 0%, #0c0d10 100%)', 
+        background: 'radial-gradient(circle at center, #1b2030 0%, #06070a 100%)', 
         padding: '24px',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        position: 'relative',
+        overflow: 'hidden'
       }}
     >
-      {/* Smartphone Mockup Frame */}
-      <div 
-        style={{
-          width: '410px',
-          height: '840px',
-          borderRadius: '36px',
-          border: '12px solid #20232d',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.75)',
-          background: 'var(--bg-primary)',
-          overflow: 'hidden',
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
-        {/* Speaker Bezel & Camera detail */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '120px',
-          height: '24px',
-          background: '#20232d',
-          borderBottomLeftRadius: '14px',
-          borderBottomRightRadius: '14px',
-          zIndex: 10000,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <div style={{ width: '40px', height: '3px', background: '#495057', borderRadius: '2px' }} />
-          <div style={{ width: '8px', height: '8px', background: '#171920', borderRadius: '50%', border: '1px solid #495057' }} />
-        </div>
+      {/* Premium Ambient Glow Lights */}
+      <div style={{ position: 'absolute', top: '15%', left: '25%', width: '350px', height: '350px', borderRadius: '50%', background: 'rgba(130, 20, 23, 0.12)', filter: 'blur(110px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '15%', right: '25%', width: '400px', height: '400px', borderRadius: '50%', background: 'rgba(229, 169, 59, 0.06)', filter: 'blur(130px)', pointerEvents: 'none' }} />
+
+      {/* Smartphone Mockup Outer Container */}
+      <div style={{ position: 'relative', width: '420px', height: '850px' }}>
         
-        {/* Inner Mobile App Container */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-          <MobileApp {...sharedProps} />
+        {/* Physical Side Buttons: Left Volume Buttons */}
+        <div style={{ position: 'absolute', left: '-3px', top: '180px', width: '3px', height: '48px', background: '#2c303b', borderRadius: '3px 0 0 3px', boxShadow: 'inset 1px 0 2px rgba(255,255,255,0.1)' }} />
+        <div style={{ position: 'absolute', left: '-3px', top: '240px', width: '3px', height: '48px', background: '#2c303b', borderRadius: '3px 0 0 3px', boxShadow: 'inset 1px 0 2px rgba(255,255,255,0.1)' }} />
+        
+        {/* Physical Side Buttons: Right Power Button */}
+        <div style={{ position: 'absolute', right: '-3px', top: '210px', width: '3px', height: '70px', background: '#2c303b', borderRadius: '0 3px 3px 0', boxShadow: 'inset -1px 0 2px rgba(255,255,255,0.1)' }} />
+
+        {/* Smartphone Chassis Bezel Frame */}
+        <div 
+          style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '48px',
+            background: '#090a0f',
+            padding: '12px',
+            boxSizing: 'border-box',
+            boxShadow: '0 30px 70px rgba(0,0,0,0.85), 0 10px 20px rgba(0,0,0,0.4), inset 0 0 0 1.5px rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.04)',
+            border: '1px solid #1c1f26',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative'
+          }}
+        >
+          {/* Inner Screen Chamfer / Border */}
+          <div 
+            style={{
+              flex: 1,
+              borderRadius: '36px',
+              overflow: 'hidden',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: 'inset 0 0 10px rgba(0,0,0,0.85)',
+              border: '2px solid #000'
+            }}
+          >
+            {/* Dynamic Island Notch */}
+            <div style={{
+              position: 'absolute',
+              top: '11px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '110px',
+              height: '28px',
+              background: '#000000',
+              borderRadius: '20px',
+              zIndex: 10000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 16px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              boxSizing: 'border-box'
+            }}>
+              {/* Speaker Speaker Grill */}
+              <div style={{ width: '38px', height: '3.5px', background: '#12141c', borderRadius: '2px', border: '0.5px solid #222' }} />
+              
+              {/* Camera Lens with Premium Glass Reflection */}
+              <div style={{ 
+                width: '8.5px', 
+                height: '8.5px', 
+                borderRadius: '50%', 
+                background: 'radial-gradient(circle at 30% 30%, #1e293b 0%, #030712 85%)', 
+                border: '0.8px solid #0f172a',
+                boxShadow: 'inset 0 0 2px rgba(255,255,255,0.2)'
+              }} />
+            </div>
+            
+            {/* Premium Screen Glass Glare Sheen Reflection Overlay */}
+            <div 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.012) 35%, rgba(255, 255, 255, 0) 70%)',
+                zIndex: 9999,
+                pointerEvents: 'none',
+                borderRadius: '34px'
+              }}
+            />
+
+            {/* Inner Mobile App Container */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+              <MobileApp {...sharedProps} />
+            </div>
+          </div>
+          
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-// MobileMobilityTab.tsx - Mobility (Mobilitas) view for JogjaOne Mobile App
+// MobileMobilityTab.tsx - Mobility (Mobilitas) view for JogjaOne Mobile App (Version 2)
 import React, { useState } from 'react';
 import InteractiveMap from '@/components/InteractiveMap';
 import { speak } from '@/utils/speech';
@@ -32,36 +32,60 @@ interface MobileMobilityTabProps {
   v2xTimeRemaining: number;
   triggerV2X: () => void;
   uiMode: 'default' | 'lansia' | 'disabilitas';
+  onNavigate?: (tab: 'home' | 'mobilitas' | 'lingkungan' | 'kesehatan' | 'lapor' | 'layanan') => void;
 }
 
 // ----------------- SVG Icons Helper collection -----------------
 const SearchIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#888888" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8" />
     <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
 
-const LocationPinIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-
 const WalletIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="4" width="20" height="16" rx="2" />
     <line x1="12" y1="10" x2="12" y2="14" />
     <line x1="10" y1="12" x2="14" y2="12" />
   </svg>
 );
 
-const LeafIcon = () => (
-  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 22c1.25-6.7 5.75-11.2 12.5-12.5M12 2c6.7 1.25 11.2 5.75 12.5 12.5" />
-    <path d="M2 22C8.7 20.75 13.2 16.25 14.5 9.5" />
+const BackIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6" />
   </svg>
+);
+
+const BusModaIcon = () => (
+  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#E8F0FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A73E8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="4" width="14" height="16" rx="2" ry="2" />
+      <line x1="9" y1="18" x2="15" y2="18" />
+      <line x1="9" y1="22" x2="9" y2="22" />
+      <line x1="15" y1="22" x2="15" y2="22" />
+      <circle cx="12" cy="9" r="2" />
+    </svg>
+  </div>
+);
+
+const BentorModaIcon = () => (
+  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#E6F4EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#137333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+      <path d="m13 6-5 6h4v6l5-6h-4z" fill="#137333" />
+    </svg>
+  </div>
+);
+
+const DelmanModaIcon = () => (
+  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#FEF7E0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B06000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      <path d="M2 12h20" />
+    </svg>
+  </div>
 );
 
 export default function MobileMobilityTab({
@@ -73,7 +97,8 @@ export default function MobileMobilityTab({
   v2xActive,
   v2xTimeRemaining,
   triggerV2X,
-  uiMode
+  uiMode,
+  onNavigate
 }: MobileMobilityTabProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showPayDrawer, setShowPayDrawer] = useState(false);
@@ -85,7 +110,7 @@ export default function MobileMobilityTab({
   const [refillAmount, setRefillAmount] = useState('');
 
   // Selected Transit state
-  const [selectedTransit, setSelectedTransit] = useState<'bus' | 'bentor' | 'delman'>('bus');
+  const [selectedTransit, setSelectedTransit] = useState<'bus' | 'bentor' | 'delman'>('bentor');
   const ticketFare = selectedTransit === 'bus' ? 3500 : selectedTransit === 'bentor' ? 5000 : 15000;
 
   const handleSearch = (e: React.FormEvent) => {
@@ -147,197 +172,306 @@ export default function MobileMobilityTab({
   };
 
   return (
-    <div className="animate-slide-up" style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    <div 
+      className="animate-slide-up" 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: '100%', 
+        position: 'relative', 
+        background: '#F4F6F9',
+        boxSizing: 'border-box'
+      }}
+    >
       
-      {/* 1. Header Search Bar */}
-      <form 
-        onSubmit={handleSearch}
+      {/* 1. Header block */}
+      <div 
         style={{
-          padding: '12px 16px',
-          background: 'var(--bg-secondary)',
-          borderBottom: '1px solid var(--border-color)',
-          display: 'flex',
-          gap: '8px',
-          alignItems: 'center',
-          zIndex: 10
-        }}
-      >
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'var(--bg-primary)',
-          borderRadius: '24px',
-          padding: '2px 12px',
-          border: '1px solid var(--border-color)'
-        }}>
-          <span style={{ color: 'var(--text-muted)', display: 'flex' }}><SearchIcon /></span>
-          <input
-            type="text"
-            placeholder="Mau kemana hari ini?"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              flex: 1,
-              border: 'none',
-              outline: 'none',
-              background: 'none',
-              fontSize: '11px',
-              padding: '6px 0',
-              color: 'var(--text-primary)'
-            }}
-          />
-        </div>
-        <button 
-          type="button" 
-          onClick={() => {
-            setActiveRoute(['stasiun', 'malioboro']);
-            speak("Menampilkan rute terdekat.");
-          }}
-          style={{
-            background: 'var(--bg-tertiary)',
-            border: 'none',
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer'
-          }}
-        >
-          <LocationPinIcon />
-        </button>
-      </form>
-
-      {/* 2. Interactive Map View */}
-      <div style={{ flex: 1, position: 'relative', minHeight: '220px' }}>
-        <InteractiveMap
-          mode={uiMode}
-          vehicles={vehicles}
-          drainageNodes={drainageNodes}
-          puddleReports={puddleReports}
-          activeRoute={activeRoute.length > 0 ? activeRoute : ['stasiun', 'malioboro']}
-        />
-
-        {/* 3. Floating Overlay Cards */}
-        <div style={{
-          position: 'absolute',
-          top: '12px',
-          left: '12px',
-          right: '12px',
-          background: 'var(--glass-bg)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid var(--glass-border)',
-          borderRadius: '14px',
-          padding: '12px 14px',
-          boxShadow: 'var(--shadow-md)',
-          pointerEvents: 'auto',
+          background: 'linear-gradient(180deg, #1A73E8 0%, #1557B0 100%)',
+          padding: '20px 16px 20px 16px',
+          color: 'white',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <strong style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'block', letterSpacing: '-0.2px' }}>
-                Malioboro Mall
-              </strong>
-              <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
-                15 mnt • 2.4 km
-              </span>
-            </div>
-            <strong style={{ fontSize: '13px', color: 'var(--accent-blue)', fontWeight: '800' }}>
-              Rp {ticketFare.toLocaleString('id-ID')}
-            </strong>
-          </div>
+          gap: '8px',
+          boxSizing: 'border-box',
+          boxShadow: '0 4px 15px rgba(26,115,232,0.12)'
+        }}
+      >
+        {/* Back Link */}
+        <div 
+          onClick={() => { if (onNavigate) onNavigate('home'); }}
+          style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', width: 'fit-content' }}
+        >
+          <BackIcon />
+          <span style={{ fontSize: '12px', fontWeight: 600 }}>Kembali</span>
+        </div>
 
-          {/* Transit alternative tabs */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', background: 'var(--bg-tertiary)', padding: '2px', borderRadius: '8px' }}>
-            {[
-              { id: 'bus', label: 'Trans Jogja', carbon: '0.1 kg', duration: '10m' },
-              { id: 'bentor', label: 'Bentor Lstrk', carbon: '0.0 kg', duration: '12m' },
-              { id: 'delman', label: 'Delman Wst', carbon: '0.0 kg', duration: '25m' }
-            ].map(item => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => { setSelectedTransit(item.id as any); speak(`Moda ${item.label} dipilih.`); }}
-                style={{
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '4px 0',
-                  fontSize: '8px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  background: selectedTransit === item.id ? 'var(--bg-secondary)' : 'transparent',
-                  color: selectedTransit === item.id ? 'var(--accent-blue)' : 'var(--text-secondary)',
-                  boxShadow: selectedTransit === item.id ? 'var(--shadow-sm)' : 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center'
-                }}
-              >
-                <span>{item.label}</span>
-                <span style={{ fontSize: '6px', color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '1px', marginTop: '1px' }}>
-                  <LeafIcon /> {item.carbon}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* Route Steps detail */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', paddingLeft: '14px', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
-            <div style={{ position: 'absolute', left: '4px', top: '14px', bottom: '12px', width: '1.5px', borderLeft: '1.5px dashed var(--accent-blue)' }} />
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '-13.5px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-green)', border: '1px solid var(--bg-secondary)' }} />
-              <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Jl. Kaliurang KM 5</span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0', position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '-13.5px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-blue)', border: '1px solid var(--bg-secondary)' }} />
-              <span style={{ background: 'rgba(26,115,232,0.12)', color: 'var(--accent-blue)', padding: '2px 6px', borderRadius: '10px', fontSize: '8px', fontWeight: 'bold' }}>
-                {selectedTransit === 'bus' ? 'Bus 3A' : selectedTransit === 'bentor' ? 'Eco-Bentor' : 'Delman Wisata'} Shuttle
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '-13.5px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-danger)', border: '1px solid var(--bg-secondary)' }} />
-              <span style={{ fontSize: '9px', color: 'var(--text-primary)', fontWeight: 'bold' }}>Malioboro Mall</span>
-            </div>
-          </div>
+        {/* Title & Subtitle */}
+        <div style={{ marginTop: '4px' }}>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
+            Mobilitas
+          </h2>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
+            Transportasi cerdas Yogyakarta
+          </span>
         </div>
       </div>
 
-      {/* 4. Bottom Controls */}
-      <div style={{
-        padding: '12px 16px',
-        background: 'var(--bg-secondary)',
-        borderTop: '1px solid var(--border-color)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: '12px',
-        zIndex: 10
-      }}>
-        {/* Adaptive Green Light Status */}
-        <div 
+      {/* 2. Scrollable Body Content */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '88px', boxSizing: 'border-box' }}>
+        
+        {/* Search Bar Input */}
+        <form 
+          onSubmit={handleSearch}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            background: 'white',
+            borderRadius: '16px',
+            padding: '2px 14px',
+            border: '1px solid #E0E0E0',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
+            boxSizing: 'border-box'
+          }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            <SearchIcon />
+          </span>
+          <input
+            type="text"
+            placeholder="Mau ke mana hari ini?"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              border: 'none',
+              outline: 'none',
+              background: 'none',
+              padding: '12px 0',
+              fontSize: '12px',
+              width: '100%',
+              color: 'var(--text-primary)'
+            }}
+          />
+        </form>
+
+        {/* Peta GIS Card */}
+        <div style={{
+          background: 'white',
+          borderRadius: '20px',
+          border: '1px solid #E0E0E0',
+          padding: '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <strong style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              PETA JOGJA
+            </strong>
+          </div>
+          <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #E0E0E0', position: 'relative' }}>
+            <InteractiveMap
+              mode={uiMode}
+              vehicles={vehicles}
+              drainageNodes={drainageNodes}
+              puddleReports={puddleReports}
+              activeRoute={activeRoute.length > 0 ? activeRoute : ['stasiun', 'tugu']}
+            />
+          </div>
+        </div>
+
+        {/* PILIH TRANSPORTASI Heading */}
+        <div>
+          <strong style={{ fontSize: '9px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: '10px' }}>
+            PILIH TRANSPORTASI
+          </strong>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* Trans Jogja Card */}
+            <div 
+              onClick={() => { setSelectedTransit('bus'); speak("Moda Trans Jogja dipilih."); }}
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                border: selectedTransit === 'bus' ? '2px solid #1A73E8' : '1px solid #E0E0E0',
+                cursor: 'pointer',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.02)'
+              }}
+            >
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <BusModaIcon />
+                <div>
+                  <strong style={{ fontSize: '13px', color: '#1C1E21', display: 'block' }}>Trans Jogja</strong>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginTop: '1px' }}>
+                    Rute 1A · Malioboro → Tugu
+                  </span>
+                  <span style={{ fontSize: '10px', color: '#1C1E21', fontWeight: 600, display: 'block', marginTop: '4px' }}>
+                    Rp3.500 <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>•</span> 10 mnt <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>•</span> <span style={{ color: '#137333' }}>0.1 kg CO₂</span>
+                  </span>
+                </div>
+              </div>
+              <div style={{
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                border: selectedTransit === 'bus' ? '5px solid #1A73E8' : '2px solid #CCCCCC',
+                boxSizing: 'border-box'
+              }} />
+            </div>
+
+            {/* Eco-Bentor Card */}
+            <div 
+              onClick={() => { setSelectedTransit('bentor'); speak("Moda Eco Bentor dipilih."); }}
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                border: selectedTransit === 'bentor' ? '2px solid #1A73E8' : '1px solid #E0E0E0',
+                cursor: 'pointer',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.02)'
+              }}
+            >
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <BentorModaIcon />
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <strong style={{ fontSize: '13px', color: '#1C1E21' }}>Eco-Bentor</strong>
+                    <span style={{
+                      background: '#E6F4EA',
+                      color: '#137333',
+                      fontSize: '7.5px',
+                      fontWeight: 'bold',
+                      padding: '2px 6px',
+                      borderRadius: '10px',
+                      border: '0.5px solid rgba(19,115,51,0.15)'
+                    }}>
+                      Most Eco Friendly
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginTop: '1px' }}>
+                    Tenaga listrik · 0 emisi
+                  </span>
+                  <span style={{ fontSize: '10px', color: '#1C1E21', fontWeight: 600, display: 'block', marginTop: '4px' }}>
+                    Rp5.000 <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>•</span> 12 mnt <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>•</span> <span style={{ color: '#137333' }}>0 kg CO₂</span>
+                  </span>
+                </div>
+              </div>
+              <div style={{
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                border: selectedTransit === 'bentor' ? '5px solid #1A73E8' : '2px solid #CCCCCC',
+                boxSizing: 'border-box'
+              }} />
+            </div>
+
+            {/* Delman Wisata Card */}
+            <div 
+              onClick={() => { setSelectedTransit('delman'); speak("Moda Delman Wisata dipilih."); }}
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                border: selectedTransit === 'delman' ? '2px solid #1A73E8' : '1px solid #E0E0E0',
+                cursor: 'pointer',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.02)'
+              }}
+            >
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <DelmanModaIcon />
+                <div>
+                  <strong style={{ fontSize: '13px', color: '#1C1E21', display: 'block' }}>Delman Wisata</strong>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginTop: '1px' }}>
+                    Wisata budaya · area Kraton
+                  </span>
+                  <span style={{ fontSize: '10px', color: '#1C1E21', fontWeight: 600, display: 'block', marginTop: '4px' }}>
+                    Rp15.000 <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>•</span> 25 mnt <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>•</span> <span style={{ color: '#137333' }}>0 kg CO₂</span>
+                  </span>
+                </div>
+              </div>
+              <div style={{
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                border: selectedTransit === 'delman' ? '5px solid #1A73E8' : '2px solid #CCCCCC',
+                boxSizing: 'border-box'
+              }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Adaptive Green Light Action Button */}
+        <button
           onClick={triggerV2X}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+          style={{
+            background: 'white',
+            borderRadius: '16px',
+            border: '1.5px solid #E0E0E0',
+            padding: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
+            width: '100%',
+            fontWeight: 'bold',
+            fontSize: '11px',
+            color: v2xActive ? '#137333' : '#1C1E21',
+            transition: 'all 0.2s'
+          }}
         >
           <span style={{
             width: '8px',
             height: '8px',
             borderRadius: '50%',
-            background: v2xActive ? 'var(--accent-green)' : '#888',
-            boxShadow: v2xActive ? '0 0 6px var(--accent-green)' : 'none',
+            background: v2xActive ? '#00E676' : '#888',
+            boxShadow: v2xActive ? '0 0 8px #00E676' : 'none',
             display: 'inline-block',
             animation: v2xActive ? 'pulse 1s infinite' : 'none'
           }} />
-          <span style={{ fontSize: '9px', color: v2xActive ? 'var(--accent-green)' : 'var(--text-muted)', fontWeight: 'bold' }}>
-            {v2xActive ? `V2X Green Light (+${v2xTimeRemaining}s)` : 'Adaptive Green Light'}
-          </span>
+          Adaptive Green Light — {v2xActive ? `Aktif (+${v2xTimeRemaining}s)` : 'Aktifkan'}
+        </button>
+
+      </div>
+
+
+      {/* 3. Bottom controls container */}
+      <div style={{
+        padding: '12px 16px',
+        background: 'white',
+        borderTop: '1px solid #E0E0E0',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '12px',
+        zIndex: 10,
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        width: '100%',
+        boxSizing: 'border-box'
+      }}>
+        {/* JogjaPay Wallet Preview */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '18px' }}>💳</span>
+          <div>
+            <span style={{ fontSize: '8px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Saldo JogjaPay</span>
+            <strong style={{ fontSize: '12px', color: '#1C1E21' }}>Rp {jogjaPayBalance.toLocaleString('id-ID')}</strong>
+          </div>
         </div>
 
         {/* Pay Button */}
@@ -347,21 +481,21 @@ export default function MobileMobilityTab({
             speak("Membuka laci pembayaran JogjaPay.");
           }}
           style={{
-            background: 'var(--brand-crimson)',
+            background: '#1A73E8',
             color: 'white',
             border: 'none',
-            padding: '8px 18px',
-            borderRadius: '20px',
+            padding: '10px 20px',
+            borderRadius: '16px',
             fontSize: '11px',
             fontWeight: 'bold',
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(139, 0, 0, 0.25)',
+            boxShadow: '0 4px 12px rgba(26,115,232,0.15)',
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px'
           }}
         >
-          <WalletIcon /> Bayar (JogjaPay)
+          <WalletIcon /> Bayar Rp {ticketFare.toLocaleString('id-ID')}
         </button>
       </div>
 
@@ -374,7 +508,7 @@ export default function MobileMobilityTab({
           width: '100%',
           height: '100%',
           background: 'rgba(0,0,0,0.5)',
-          zIndex: 100,
+          zIndex: 1000,
           display: 'flex',
           alignItems: 'flex-end',
           animation: 'fade-in 0.2s ease'
@@ -383,7 +517,7 @@ export default function MobileMobilityTab({
             className="animate-slide-up"
             style={{
               width: '100%',
-              background: 'var(--bg-secondary)',
+              background: 'white',
               borderTopLeftRadius: '24px',
               borderTopRightRadius: '24px',
               padding: '20px 24px',
@@ -391,14 +525,15 @@ export default function MobileMobilityTab({
               display: 'flex',
               flexDirection: 'column',
               gap: '14px',
-              position: 'relative'
+              position: 'relative',
+              boxSizing: 'border-box'
             }}
           >
-            <div style={{ width: '40px', height: '4px', background: 'var(--border-color)', borderRadius: '2px', alignSelf: 'center', cursor: 'pointer' }} onClick={() => setShowPayDrawer(false)} />
+            <div style={{ width: '40px', height: '4px', background: '#E0E0E0', borderRadius: '2px', alignSelf: 'center', cursor: 'pointer' }} onClick={() => setShowPayDrawer(false)} />
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E0E0E0', paddingBottom: '10px' }}>
               <div>
-                <strong style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'block' }}>JogjaPay Wallet</strong>
+                <strong style={{ fontSize: '13px', color: '#1C1E21', display: 'block' }}>JogjaPay Wallet</strong>
                 <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Saldo Terintegrasi Layanan DIY</span>
               </div>
               <button onClick={() => setShowPayDrawer(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '16px', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
@@ -406,17 +541,17 @@ export default function MobileMobilityTab({
 
             {/* Visual Bank Card */}
             <div style={{
-              background: 'linear-gradient(135deg, hsl(356, 75%, 36%) 0%, #a91d22 100%)',
-              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #1A73E8 0%, #1557B0 100%)',
+              borderRadius: '16px',
               padding: '16px',
               color: 'white',
-              boxShadow: '0 4px 14px rgba(169,29,34,0.2)'
+              boxShadow: '0 8px 20px rgba(26,115,232,0.2)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px' }}>JOGJAPAY CARD</span>
                 <span style={{ fontSize: '14px' }}>💳</span>
               </div>
-              <strong style={{ display: 'block', fontSize: '18px', margin: '20px 0 10px 0', fontWeight: '800' }}>
+              <strong style={{ display: 'block', fontSize: '20px', margin: '20px 0 10px 0', fontWeight: '800' }}>
                 Rp {jogjaPayBalance.toLocaleString('id-ID')}
               </strong>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', opacity: 0.8 }}>
@@ -434,11 +569,11 @@ export default function MobileMobilityTab({
                 }}
                 style={{
                   flex: 1,
-                  background: 'var(--bg-tertiary)',
-                  color: 'var(--text-primary)',
-                  border: '1px solid var(--border-color)',
-                  padding: '10px',
-                  borderRadius: '20px',
+                  background: '#F4F6F9',
+                  color: '#1C1E21',
+                  border: '1px solid #E0E0E0',
+                  padding: '12px',
+                  borderRadius: '16px',
                   fontSize: '11px',
                   fontWeight: 'bold',
                   cursor: 'pointer'
@@ -451,15 +586,15 @@ export default function MobileMobilityTab({
                 disabled={payStatus !== 'idle'}
                 style={{
                   flex: 1,
-                  background: 'var(--accent-blue)',
+                  background: '#1A73E8',
                   color: 'white',
                   border: 'none',
-                  padding: '10px',
-                  borderRadius: '20px',
+                  padding: '12px',
+                  borderRadius: '16px',
                   fontSize: '11px',
                   fontWeight: 'bold',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(26,115,232,0.15)'
+                  boxShadow: '0 4px 12px rgba(26,115,232,0.15)'
                 }}
               >
                 Bayar Rp {ticketFare.toLocaleString('id-ID')}
@@ -474,9 +609,9 @@ export default function MobileMobilityTab({
                     width: '56px',
                     height: '56px',
                     borderRadius: '50%',
-                    background: 'rgba(26,115,232,0.12)',
-                    border: '2px dashed var(--accent-blue)',
-                    color: 'var(--accent-blue)',
+                    background: 'rgba(26,115,232,0.08)',
+                    border: '2px dashed #1A73E8',
+                    color: '#1A73E8',
                     fontSize: '20px',
                     display: 'flex',
                     alignItems: 'center',
@@ -485,7 +620,7 @@ export default function MobileMobilityTab({
                   }}>
                     🔍
                   </div>
-                  <span style={{ fontSize: '9px', color: 'var(--accent-blue)', fontWeight: 'bold' }}>Memverifikasi Sidik Jari...</span>
+                  <span style={{ fontSize: '9px', color: '#1A73E8', fontWeight: 'bold' }}>Memverifikasi Sidik Jari...</span>
                 </>
               )}
 
@@ -495,9 +630,9 @@ export default function MobileMobilityTab({
                     width: '56px',
                     height: '56px',
                     borderRadius: '50%',
-                    background: 'rgba(24,128,56,0.12)',
-                    border: '2px solid var(--accent-green)',
-                    color: 'var(--accent-green)',
+                    background: 'rgba(24,128,56,0.08)',
+                    border: '2px solid #137333',
+                    color: '#137333',
                     fontSize: '20px',
                     display: 'flex',
                     alignItems: 'center',
@@ -505,7 +640,7 @@ export default function MobileMobilityTab({
                   }}>
                     ✓
                   </div>
-                  <span style={{ fontSize: '9px', color: 'var(--accent-green)', fontWeight: 'bold' }}>Pembayaran Sukses!</span>
+                  <span style={{ fontSize: '9px', color: '#137333', fontWeight: 'bold' }}>Pembayaran Sukses!</span>
                 </>
               )}
             </div>
@@ -518,25 +653,26 @@ export default function MobileMobilityTab({
                 left: 0,
                 width: '100%',
                 height: '100%',
-                background: 'var(--bg-secondary)',
+                background: 'white',
                 borderTopLeftRadius: '24px',
                 borderTopRightRadius: '24px',
                 padding: '20px 24px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
-                zIndex: 200,
-                animation: 'slide-up 0.25s ease'
+                zIndex: 2000,
+                animation: 'slide-up 0.25s ease',
+                boxSizing: 'border-box'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-                  <strong style={{ fontSize: '12px', color: 'var(--text-primary)' }}>Isi Ulang Saldo</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E0E0E0', paddingBottom: '8px' }}>
+                  <strong style={{ fontSize: '12px', color: '#1C1E21' }}>Isi Ulang Saldo</strong>
                   <button onClick={() => setShowRefillKeypad(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer', fontWeight: 'bold' }}>Batal</button>
                 </div>
 
                 {/* Display Area */}
-                <div style={{ background: 'var(--bg-tertiary)', borderRadius: '10px', padding: '12px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
+                <div style={{ background: '#F4F6F9', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid #E0E0E0' }}>
                   <span style={{ fontSize: '8px', color: 'var(--text-muted)', display: 'block' }}>NOMINAL ISI ULANG</span>
-                  <strong style={{ fontSize: '20px', color: 'var(--text-primary)', display: 'block', marginTop: '4px' }}>
+                  <strong style={{ fontSize: '20px', color: '#1C1E21', display: 'block', marginTop: '4px' }}>
                     Rp {(parseInt(refillAmount) || 0).toLocaleString('id-ID')}
                   </strong>
                 </div>
@@ -548,12 +684,12 @@ export default function MobileMobilityTab({
                       key={key}
                       onClick={() => handleKeypadPress(key)}
                       style={{
-                        background: 'var(--bg-tertiary)',
+                        background: '#F4F6F9',
                         border: 'none',
                         borderRadius: '8px',
                         fontSize: '14px',
                         fontWeight: 'bold',
-                        color: 'var(--text-primary)',
+                        color: '#1C1E21',
                         cursor: 'pointer',
                         padding: '10px 0',
                         display: 'flex',
@@ -569,15 +705,15 @@ export default function MobileMobilityTab({
                 <button
                   onClick={confirmRefill}
                   style={{
-                    background: 'var(--accent-green)',
+                    background: '#137333',
                     color: 'white',
                     border: 'none',
-                    padding: '10px',
-                    borderRadius: '20px',
+                    padding: '12px',
+                    borderRadius: '16px',
                     fontSize: '11px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(24,128,56,0.15)'
+                    boxShadow: '0 4px 12px rgba(24,128,56,0.15)'
                   }}
                 >
                   Konfirmasi Isi Ulang

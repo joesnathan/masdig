@@ -1,6 +1,5 @@
-// MobileEnvironmentTab.tsx - Environment (Lingkungan) view for JogjaOne Mobile App
+// MobileEnvironmentTab.tsx - Environment (Lingkungan) view for JogjaOne Mobile App (Version 2)
 import React, { useState, useEffect } from 'react';
-import InteractiveMap from '@/components/InteractiveMap';
 import { speak } from '@/utils/speech';
 
 interface MapNode {
@@ -24,6 +23,7 @@ interface Vehicle {
 
 interface MobileEnvironmentTabProps {
   vehicles: Vehicle[];
+  setVehicles?: React.Dispatch<React.SetStateAction<Vehicle[]>>;
   drainageNodes: MapNode[];
   puddleReports: Array<{ id: string; x: number; y: number; status: string }>;
   activeRoute: string[];
@@ -32,28 +32,16 @@ interface MobileEnvironmentTabProps {
   sampahBalance: number;
   setSampahBalance: (val: number) => void;
   uiMode: 'default' | 'lansia' | 'disabilitas';
+  onNavigate?: (tab: 'home' | 'mobilitas' | 'lingkungan' | 'kesehatan' | 'lapor' | 'layanan') => void;
 }
 
 // ----------------- SVG Icons Helper collection -----------------
-const EcoIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2a10 10 0 0 0-10 10c0 5.52 4.48 10 10 10s10-4.48 10-10H12V2z" />
-    <path d="M12 2a10 10 0 0 1 10 10H12V2z" />
-  </svg>
-);
-
 const TrashIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="3 6 5 6 21 6" />
     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
     <line x1="10" y1="11" x2="10" y2="17" />
     <line x1="14" y1="11" x2="14" y2="17" />
-  </svg>
-);
-
-const ShieldIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
   </svg>
 );
 
@@ -64,16 +52,18 @@ const VideoIcon = () => (
   </svg>
 );
 
+const BackIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+);
+
 export default function MobileEnvironmentTab({
   vehicles,
-  drainageNodes,
-  puddleReports,
-  activeRoute,
-  grateStatus,
-  setGrateStatus,
+  setVehicles,
   sampahBalance,
   setSampahBalance,
-  uiMode
+  onNavigate
 }: MobileEnvironmentTabProps) {
   const [activeSegment, setActiveSegment] = useState<'banjir' | 'limbah'>('banjir');
   const [playCctvCode, setPlayCctvCode] = useState(false);
@@ -113,10 +103,19 @@ export default function MobileEnvironmentTab({
     ]);
 
     // Dispatch recycling vehicle coordinates on the map
-    if (vehicles.length > 1) {
-      vehicles[1].x = 290;
-      vehicles[1].y = 150;
-      vehicles[1].status = 'Kurir Penjemputan Sampah Daur Ulang';
+    if (setVehicles && vehicles.length > 1) {
+      setVehicles(prev => {
+        const next = [...prev];
+        if (next.length > 1) {
+          next[1] = {
+            ...next[1],
+            x: 290,
+            y: 150,
+            status: 'Kurir Penjemputan Sampah Daur Ulang'
+          };
+        }
+        return next;
+      });
     }
 
     speak(`Berhasil meminta penjemputan sampah ${wasteCategory}. Saldo poin bertambah sebesar ${pointsGained} poin.`);
@@ -143,23 +142,67 @@ export default function MobileEnvironmentTab({
   const estimatedPoints = wasteCategory === 'Plastik' ? wasteWeight * 30 : wasteCategory === 'Kertas' ? wasteWeight * 20 : wasteWeight * 50;
 
   return (
-    <div className="animate-slide-up" style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    <div 
+      className="animate-slide-up" 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: '100%', 
+        position: 'relative',
+        background: '#F4F6F9',
+        boxSizing: 'border-box'
+      }}
+    >
       
-      {/* 1. Header Segment Controls */}
+      {/* 1. Header block (Green Gradient for Layanan/Environment) */}
+      <div 
+        style={{
+          background: 'linear-gradient(180deg, #0F9D58 0%, #0B8043 100%)',
+          padding: '20px 16px 20px 16px',
+          color: 'white',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          boxSizing: 'border-box',
+          boxShadow: '0 4px 15px rgba(15,157,88,0.15)'
+        }}
+      >
+        {/* Back Link */}
+        <div 
+          onClick={() => { if (onNavigate) onNavigate('home'); }}
+          style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', width: 'fit-content' }}
+        >
+          <BackIcon />
+          <span style={{ fontSize: '12px', fontWeight: 600 }}>Kembali</span>
+        </div>
+
+        {/* Title & Subtitle */}
+        <div style={{ marginTop: '4px' }}>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
+            Layanan
+          </h2>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
+            Pemantauan banjir & Bank Sampah
+          </span>
+        </div>
+      </div>
+
+      {/* 2. Segment Switcher (White Card container) */}
       <div style={{
         padding: '12px 16px',
-        background: 'var(--bg-secondary)',
-        borderBottom: '1px solid var(--border-color)',
+        background: 'white',
+        borderBottom: '1px solid #E0E0E0',
         display: 'flex',
         justifyContent: 'center',
         zIndex: 10
       }}>
         <div style={{
           display: 'flex',
-          background: 'var(--bg-primary)',
+          background: '#F0F2F5',
           borderRadius: '20px',
           padding: '2px',
-          width: '100%'
+          width: '100%',
+          boxSizing: 'border-box'
         }}>
           <button
             onClick={() => { setActiveSegment('banjir'); speak("Membuka Pantau Banjir."); }}
@@ -168,16 +211,20 @@ export default function MobileEnvironmentTab({
               border: 'none',
               borderRadius: '18px',
               padding: '6px 0',
-              fontSize: '10px',
+              fontSize: '10.5px',
               fontWeight: 'bold',
               cursor: 'pointer',
-              background: activeSegment === 'banjir' ? 'white' : 'transparent',
-              color: activeSegment === 'banjir' ? 'var(--text-primary)' : 'var(--text-muted)',
-              boxShadow: activeSegment === 'banjir' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              transition: 'all 0.2s'
+              background: activeSegment === 'banjir' ? '#1A73E8' : 'transparent',
+              color: activeSegment === 'banjir' ? 'white' : '#5F6368',
+              boxShadow: activeSegment === 'banjir' ? '0 2px 6px rgba(26,115,232,0.2)' : 'none',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px'
             }}
           >
-            Pantau Banjir
+            🌊 Pantau Banjir
           </button>
           <button
             onClick={() => { setActiveSegment('limbah'); speak("Membuka Manajemen Limbah."); }}
@@ -186,83 +233,186 @@ export default function MobileEnvironmentTab({
               border: 'none',
               borderRadius: '18px',
               padding: '6px 0',
-              fontSize: '10px',
+              fontSize: '10.5px',
               fontWeight: 'bold',
               cursor: 'pointer',
-              background: activeSegment === 'limbah' ? 'white' : 'transparent',
-              color: activeSegment === 'limbah' ? 'var(--text-primary)' : 'var(--text-muted)',
-              boxShadow: activeSegment === 'limbah' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              transition: 'all 0.2s'
+              background: activeSegment === 'limbah' ? '#0F9D58' : 'transparent',
+              color: activeSegment === 'limbah' ? 'white' : '#5F6368',
+              boxShadow: activeSegment === 'limbah' ? '0 2px 6px rgba(15,157,88,0.2)' : 'none',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px'
             }}
           >
-            Manajemen Limbah
+            ♻️ Bank Sampah
           </button>
         </div>
       </div>
 
-      {/* 2. Active Segment Content */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '80px' }}>
+      {/* 3. Active Segment Content */}
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '88px', boxSizing: 'border-box' }}>
         
         {/* ================= PANTAU BANJIR ================= */}
         {activeSegment === 'banjir' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px', boxSizing: 'border-box' }}>
             
-            {/* Status Kota Card */}
+            {/* Flood Map Viewport Card */}
             <div style={{
-              background: 'rgba(24, 128, 56, 0.12)',
-              borderRadius: '12px',
-              padding: '12px 14px',
-              border: '1px solid var(--accent-green)',
+              background: 'white',
+              borderRadius: '20px',
+              border: '1px solid #E0E0E0',
+              padding: '12px',
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              boxShadow: 'var(--shadow-sm)'
+              flexDirection: 'column',
+              gap: '10px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+              boxSizing: 'border-box',
+              position: 'relative'
             }}>
-              <div>
-                <span style={{ fontSize: '8px', color: 'var(--accent-green)', textTransform: 'uppercase', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                  <ShieldIcon /> Status Kota
-                </span>
-                <strong style={{ display: 'block', fontSize: '13px', color: 'var(--accent-green)', marginTop: '2px' }}>
-                  • Aman Terkendali
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong style={{ fontSize: '10.5px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  PETA SENSOR REAL-TIME
                 </strong>
               </div>
-              <span style={{ fontSize: '16px', color: 'var(--accent-green)', display: 'flex' }}>✓</span>
+              <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #E0E0E0', position: 'relative' }}>
+                {/* Visual Rivers Map Overlay from Screenshots */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  background: '#E8F0FE',
+                  padding: '10px',
+                  boxSizing: 'border-box',
+                  fontFamily: 'system-ui, sans-serif'
+                }}>
+                  {/* Rivers lines */}
+                  <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                    {/* River 1 */}
+                    <path d="M 40,20 Q 150,150 300,180" fill="none" stroke="#90CAF9" strokeWidth="6" strokeLinecap="round" />
+                    {/* River 2 */}
+                    <path d="M 120,20 Q 180,180 200,210" fill="none" stroke="#90CAF9" strokeWidth="6" strokeLinecap="round" />
+                    {/* River 3 */}
+                    <path d="M 280,20 Q 250,150 180,210" fill="none" stroke="#90CAF9" strokeWidth="6" strokeLinecap="round" />
+                  </svg>
+
+                  {/* Labels and Nodes */}
+                  {/* Winongo Hulu */}
+                  <div style={{ position: 'absolute', left: '80px', top: '45px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0F9D58', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                    <span style={{ fontSize: '7.5px', color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Winongo Hulu</span>
+                  </div>
+
+                  {/* Code Tengah */}
+                  <div style={{ position: 'absolute', left: '175px', top: '65px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#FBBC05', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                    <span style={{ fontSize: '7.5px', color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Code Tengah</span>
+                  </div>
+
+                  {/* Gajah Wong */}
+                  <div style={{ position: 'absolute', left: '125px', top: '125px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0F9D58', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                    <span style={{ fontSize: '7.5px', color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Gajah Wong</span>
+                  </div>
+
+                  {/* Winongo Hilir */}
+                  <div style={{ position: 'absolute', left: '210px', top: '135px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0F9D58', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                    <span style={{ fontSize: '7.5px', color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Winongo Hilir</span>
+                  </div>
+
+                  {/* Code Hilir */}
+                  <div style={{ position: 'absolute', left: '60px', top: '150px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#EA4335', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', animation: 'pulse-ring 1.5s infinite' }} />
+                    <span style={{ fontSize: '7.5px', color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Code Hilir</span>
+                  </div>
+
+                  {/* Map Legend Overlay */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '8px',
+                    right: '8px',
+                    background: 'white',
+                    padding: '6px 8px',
+                    borderRadius: '8px',
+                    border: '1px solid #E0E0E0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#0F9D58' }} />
+                      <span style={{ fontSize: '7px', color: '#5F6368' }}>Normal</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FBBC05' }} />
+                      <span style={{ fontSize: '7px', color: '#5F6368' }}>Waspada</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EA4335' }} />
+                      <span style={{ fontSize: '7px', color: '#5F6368' }}>Banjir</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Flood Map Viewport */}
-            <div style={{ height: '170px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative' }}>
-              <InteractiveMap
-                mode={uiMode}
-                vehicles={vehicles}
-                drainageNodes={drainageNodes}
-                puddleReports={puddleReports}
-                activeRoute={activeRoute}
-              />
-              <span style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                background: 'var(--glass-bg)',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid var(--glass-border)',
-                padding: '3px 8px',
-                borderRadius: '10px',
-                fontSize: '8px',
-                fontWeight: 'bold',
-                color: 'var(--accent-blue)',
-                boxShadow: 'var(--shadow-sm)'
-              }}>
-                Sungai Code: 1.2m
-              </span>
+            {/* River Levels Section Card */}
+            <div style={{
+              background: 'white',
+              borderRadius: '20px',
+              border: '1px solid #E0E0E0',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+              boxSizing: 'border-box'
+            }}>
+              <strong style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '800' }}>
+                Level Sungai
+              </strong>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[
+                  { name: 'Sungai Code', value: '1.2m', percentage: 65, color: '#00B0FF' },
+                  { name: 'Sungai Winongo', value: '0.8m', percentage: 40, color: '#00B0FF' },
+                  { name: 'Sungai Gajah Wong', value: '1.1m', percentage: 58, color: '#00B0FF' }
+                ].map((river, idx) => (
+                  <div key={idx}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 'bold', color: '#1C1E21', marginBottom: '4px' }}>
+                      <span>{river.name}</span>
+                      <span style={{ color: '#1A73E8' }}>{river.value}</span>
+                    </div>
+                    <div style={{ height: '6px', width: '100%', background: '#F0F2F5', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${river.percentage}%`, background: river.color, borderRadius: '3px' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* CCTV Live Section */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <strong style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <VideoIcon /> Live CCTV Pantauan
+            {/* CCTV Live Section Card */}
+            <div style={{
+              background: 'white',
+              borderRadius: '20px',
+              border: '1px solid #E0E0E0',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+              boxSizing: 'border-box'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800' }}>
+                  <VideoIcon /> CCTV LIVE
                 </strong>
-                <span style={{ fontSize: '7px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: '8px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
                   {cctvClock}
                 </span>
               </div>
@@ -270,91 +420,131 @@ export default function MobileEnvironmentTab({
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 
                 {/* CCTV 1: Pintu Air Code */}
-                <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', border: '1px solid var(--border-color)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
-                  <div style={{ height: '84px', background: '#000000', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: '#F4F6F9', borderRadius: '12px', border: '1px solid #E0E0E0', overflow: 'hidden', padding: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ height: '90px', background: '#20232D', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
                     {playCctvCode ? (
-                      <>
-                        <img 
-                          src="/tugu_yogyakarta.png" 
-                          alt="Pintu Air Code" 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(60%) hue-rotate(120deg)' }} 
-                        />
-                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', background: 'rgba(0, 255, 0, 0.04)', animation: 'cctv-noise 0.5s steps(3) infinite' }} />
-                        <div style={{ position: 'absolute', left: 0, width: '100%', height: '2px', background: '#00ff00', opacity: 0.6, animation: 'cctv-scanline 3s linear infinite' }} />
-                        <span style={{ position: 'absolute', top: '4px', left: '4px', background: 'rgba(0,0,0,0.6)', color: '#00ff00', fontSize: '5px', padding: '1px 3px', borderRadius: '2px', fontFamily: 'monospace' }}>PTU_CODE_CAM01</span>
-                      </>
+                      <iframe 
+                        src="https://www.youtube.com/embed/live_stream?channel=UCw_bU-Yf3y43u8qB6G77d3A&autoplay=1&mute=1" 
+                        title="Pintu Air Code" 
+                        style={{ width: '100%', height: '100%', border: 'none' }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
                     ) : (
-                      <span style={{ fontSize: '18px', color: '#95a5a6' }}>📹</span>
+                      <span style={{ fontSize: '20px', color: '#95a5a6' }}>📹</span>
                     )}
-                    <button
-                      onClick={handleToggleCctvCode}
-                      style={{
-                        position: 'absolute',
-                        background: 'rgba(0,0,0,0.6)',
-                        border: 'none',
-                        color: 'white',
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        fontSize: '9px',
-                        zIndex: 5
-                      }}
-                    >
-                      {playCctvCode ? '⏸' : '▶'}
-                    </button>
+                    
+                    {/* Live red badge */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '6px',
+                      left: '6px',
+                      background: '#EA4335',
+                      color: 'white',
+                      padding: '2px 4px',
+                      borderRadius: '4px',
+                      fontSize: '6.5px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '2px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}>
+                      <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'white', display: 'inline-block' }} />
+                      LIVE
+                    </div>
                   </div>
-                  <div style={{ padding: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-primary)' }}>Pintu Air Code</span>
-                    <span style={{ fontSize: '7px', background: 'rgba(24,128,56,0.12)', color: 'var(--accent-green)', padding: '1px 4px', borderRadius: '4px', fontWeight: 'bold' }}>Aman</span>
+                  
+                  <div style={{ padding: '2px 4px 0 4px' }}>
+                    <strong style={{ fontSize: '9px', color: 'var(--text-primary)', display: 'block' }}>Pintu Air Sungai Code</strong>
+                    <span style={{ fontSize: '7.5px', color: 'var(--text-muted)' }}>Kota Jogja</span>
                   </div>
+
+                  <button
+                    onClick={handleToggleCctvCode}
+                    style={{
+                      width: '100%',
+                      background: '#1A73E8',
+                      color: 'white',
+                      border: 'none',
+                      padding: '6px 0',
+                      borderRadius: '8px',
+                      fontSize: '9px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                      boxShadow: '0 2px 4px rgba(26,115,232,0.1)'
+                    }}
+                  >
+                    {playCctvCode ? '⏸ Jeda CCTV' : '▷ Lihat CCTV'}
+                  </button>
                 </div>
 
                 {/* CCTV 2: Simpang Tugu */}
-                <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', border: '1px solid var(--border-color)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
-                  <div style={{ height: '84px', background: '#000000', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: '#F4F6F9', borderRadius: '12px', border: '1px solid #E0E0E0', overflow: 'hidden', padding: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ height: '90px', background: '#20232D', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
                     {playCctvTugu ? (
-                      <>
-                        <img 
-                          src="/tugu_yogyakarta.png" 
-                          alt="Simpang Tugu" 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(60%)' }} 
-                        />
-                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', background: 'rgba(0, 255, 0, 0.04)', animation: 'cctv-noise 0.5s steps(3) infinite' }} />
-                        <div style={{ position: 'absolute', left: 0, width: '100%', height: '2px', background: '#00ff00', opacity: 0.6, animation: 'cctv-scanline 3s linear infinite' }} />
-                        <span style={{ position: 'absolute', top: '4px', left: '4px', background: 'rgba(0,0,0,0.6)', color: '#00ff00', fontSize: '5px', padding: '1px 3px', borderRadius: '2px', fontFamily: 'monospace' }}>TUGU_CROSS_CAM02</span>
-                      </>
+                      <iframe 
+                        src="https://www.youtube.com/embed/live_stream?channel=UCxS-G24K6-l7i4_G5N0V8oA&autoplay=1&mute=1" 
+                        title="Simpang Tugu" 
+                        style={{ width: '100%', height: '100%', border: 'none' }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
                     ) : (
-                      <span style={{ fontSize: '18px', color: '#95a5a6' }}>📹</span>
+                      <span style={{ fontSize: '20px', color: '#95a5a6' }}>📹</span>
                     )}
-                    <button
-                      onClick={handleToggleCctvTugu}
-                      style={{
-                        position: 'absolute',
-                        background: 'rgba(0,0,0,0.6)',
-                        border: 'none',
-                        color: 'white',
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        fontSize: '9px',
-                        zIndex: 5
-                      }}
-                    >
-                      {playCctvTugu ? '⏸' : '▶'}
-                    </button>
+
+                    {/* Live red badge */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '6px',
+                      left: '6px',
+                      background: '#EA4335',
+                      color: 'white',
+                      padding: '2px 4px',
+                      borderRadius: '4px',
+                      fontSize: '6.5px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '2px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}>
+                      <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'white', display: 'inline-block' }} />
+                      LIVE
+                    </div>
                   </div>
-                  <div style={{ padding: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-primary)' }}>Simpang Tugu</span>
-                    <span style={{ fontSize: '7px', background: 'rgba(24,128,56,0.12)', color: 'var(--accent-green)', padding: '1px 4px', borderRadius: '4px', fontWeight: 'bold' }}>Aman</span>
+
+                  <div style={{ padding: '2px 4px 0 4px' }}>
+                    <strong style={{ fontSize: '9px', color: 'var(--text-primary)', display: 'block' }}>Simpang Tugu</strong>
+                    <span style={{ fontSize: '7.5px', color: 'var(--text-muted)' }}>Pal Putih</span>
                   </div>
+
+                  <button
+                    onClick={handleToggleCctvTugu}
+                    style={{
+                      width: '100%',
+                      background: '#1A73E8',
+                      color: 'white',
+                      border: 'none',
+                      padding: '6px 0',
+                      borderRadius: '8px',
+                      fontSize: '9px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                      boxShadow: '0 2px 4px rgba(26,115,232,0.1)'
+                    }}
+                  >
+                    {playCctvTugu ? '⏸ Jeda CCTV' : '▷ Lihat CCTV'}
+                  </button>
                 </div>
 
               </div>
@@ -365,25 +555,25 @@ export default function MobileEnvironmentTab({
 
         {/* ================= MANAJEMEN LIMBAH ================= */}
         {activeSegment === 'limbah' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px', boxSizing: 'border-box' }}>
             
             {/* Poin Bank Sampah Card */}
             <div style={{
               background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)',
-              borderRadius: '16px',
-              padding: '16px',
+              borderRadius: '20px',
+              padding: '18px',
               color: 'white',
-              boxShadow: '0 6px 20px rgba(46,125,50,0.25)',
+              boxShadow: '0 6px 20px rgba(46,125,50,0.2)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center'
             }}>
               <div>
-                <span style={{ fontSize: '8px', opacity: 0.8, textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                  Poin Bank Sampah
+                <span style={{ fontSize: '9px', opacity: 0.8, textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                  Poin Bank Sampah Anda
                 </span>
-                <strong style={{ display: 'block', fontSize: '22px', marginTop: '4px', fontWeight: '800' }}>
-                  {sampahBalance.toLocaleString()} <span style={{ fontSize: '10px', fontWeight: 'normal', opacity: 0.9 }}>pts</span>
+                <strong style={{ display: 'block', fontSize: '24px', marginTop: '4px', fontWeight: '800' }}>
+                  {sampahBalance.toLocaleString()} <span style={{ fontSize: '11px', fontWeight: 'normal', opacity: 0.9 }}>pts</span>
                 </strong>
               </div>
               
@@ -396,9 +586,9 @@ export default function MobileEnvironmentTab({
                   background: 'white',
                   color: '#2e7d32',
                   border: 'none',
-                  padding: '8px 14px',
+                  padding: '8px 16px',
                   borderRadius: '20px',
-                  fontSize: '9px',
+                  fontSize: '10px',
                   fontWeight: 'bold',
                   cursor: 'pointer',
                   boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
@@ -410,8 +600,8 @@ export default function MobileEnvironmentTab({
 
             {/* Riwayat Daur Ulang */}
             <div>
-              <strong style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
-                Riwayat Daur Ulang
+              <strong style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'block', marginBottom: '10px', fontWeight: '700' }}>
+                Riwayat Setoran Daur Ulang
               </strong>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -419,39 +609,40 @@ export default function MobileEnvironmentTab({
                   <div 
                     key={index}
                     style={{
-                      background: 'var(--bg-secondary)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '10px',
-                      padding: '10px 12px',
+                      background: 'white',
+                      border: '1px solid #E0E0E0',
+                      borderRadius: '16px',
+                      padding: '12px 14px',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      boxShadow: 'var(--shadow-sm)'
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.01)'
                     }}
                   >
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span style={{ color: 'var(--accent-green)', display: 'flex' }}><TrashIcon /></span>
+                      <span style={{ color: '#2e7d32', display: 'flex' }}><TrashIcon /></span>
                       <div>
-                        <strong style={{ fontSize: '10px', color: 'var(--text-primary)', display: 'block' }}>
+                        <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>
                           {item.category}
                         </strong>
-                        <span style={{ fontSize: '8px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+                        <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
                           {item.date} • {item.id}
                         </span>
                       </div>
                     </div>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
-                      <strong style={{ fontSize: '11px', color: 'var(--accent-green)', fontWeight: '800' }}>
+                      <strong style={{ fontSize: '12px', color: '#137333', fontWeight: '800' }}>
                         +{item.points} pts
                       </strong>
                       <span style={{
-                        fontSize: '7px',
-                        background: item.status === 'Selesai' ? 'rgba(24,128,56,0.12)' : 'rgba(176,96,0,0.12)',
-                        color: item.status === 'Selesai' ? '#137333' : '#b06000',
-                        padding: '1px 4px',
-                        borderRadius: '4px',
-                        fontWeight: 'bold'
+                        fontSize: '8px',
+                        background: item.status === 'Selesai' ? '#E6F4EA' : '#FFF4E5',
+                        color: item.status === 'Selesai' ? '#137333' : '#B06000',
+                        padding: '2px 6px',
+                        borderRadius: '6px',
+                        fontWeight: 'bold',
+                        border: item.status === 'Selesai' ? '1px solid #A8DAB5' : '1px solid #FFE0B2'
                       }}>
                         {item.status}
                       </span>
@@ -466,7 +657,7 @@ export default function MobileEnvironmentTab({
 
       </div>
 
-      {/* 3. Waste Pickup Request Drawer Overlay */}
+      {/* 4. Waste Pickup Request Drawer Overlay */}
       {showPickupDrawer && (
         <div style={{
           position: 'absolute',
@@ -475,7 +666,7 @@ export default function MobileEnvironmentTab({
           width: '100%',
           height: '100%',
           background: 'rgba(0,0,0,0.5)',
-          zIndex: 100,
+          zIndex: 1000,
           display: 'flex',
           alignItems: 'flex-end',
           animation: 'fade-in 0.2s ease'
@@ -505,7 +696,7 @@ export default function MobileEnvironmentTab({
               <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Kategori Sampah:</label>
               <select 
                 value={wasteCategory} 
-                onChange={(e) => setWasteCategory(e.target.value as any)} 
+                onChange={(e) => setWasteCategory(e.target.value as 'Plastik' | 'Kertas' | 'Logam')} 
                 className="modern-input" 
                 style={{ padding: '8px', fontSize: '11px' }}
               >

@@ -1,9 +1,10 @@
-// MobileAnalyticsTab.tsx - Layanan / Live Analytics view for JogjaOne Mobile App
+// MobileAnalyticsTab.tsx - Layanan / Live Analytics view for JogjaOne Mobile App (Version 2)
 import React, { useState } from 'react';
 import { speak } from '@/utils/speech';
 
 interface MobileAnalyticsTabProps {
   uiMode: 'default' | 'lansia' | 'disabilitas';
+  onNavigate?: (tab: 'home' | 'mobilitas' | 'lingkungan' | 'kesehatan' | 'lapor' | 'layanan') => void;
 }
 
 // ----------------- SVG Icons Helper collection -----------------
@@ -22,21 +23,27 @@ const LightbulbIcon = () => (
 );
 
 const TrendUpIcon = () => (
-  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#137333" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
     <polyline points="17 6 23 6 23 12" />
   </svg>
 );
 
 const WarningIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-danger)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#DE3737" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
     <line x1="12" y1="9" x2="12" y2="13" />
     <line x1="12" y1="17" x2="12.01" y2="17" />
   </svg>
 );
 
-export default function MobileAnalyticsTab({ uiMode }: MobileAnalyticsTabProps) {
+const BackIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+);
+
+export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabProps) {
   // Chart filter timeline
   const [timeline, setTimeline] = useState<'hari' | 'minggu' | 'bulan'>('hari');
   
@@ -114,30 +121,73 @@ export default function MobileAnalyticsTab({ uiMode }: MobileAnalyticsTabProps) 
   };
 
   return (
-    <div className="animate-slide-up" style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    <div 
+      className="animate-slide-up" 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: '100%', 
+        position: 'relative',
+        background: '#F4F6F9',
+        boxSizing: 'border-box'
+      }}
+    >
       
-      {/* Scrollable contents */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '80px' }}>
+      {/* 1. Header block */}
+      <div 
+        style={{
+          background: 'linear-gradient(180deg, #1A73E8 0%, #1557B0 100%)',
+          padding: '20px 16px 20px 16px',
+          color: 'white',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          boxSizing: 'border-box',
+          boxShadow: '0 4px 15px rgba(26,115,232,0.12)'
+        }}
+      >
+        {/* Back Link */}
+        <div 
+          onClick={() => { if (onNavigate) onNavigate('home'); }}
+          style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', width: 'fit-content' }}
+        >
+          <BackIcon />
+          <span style={{ fontSize: '12px', fontWeight: 600 }}>Kembali</span>
+        </div>
+
+        {/* Title & Subtitle */}
+        <div style={{ marginTop: '4px' }}>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
+            Live Analytics
+          </h2>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
+            Dasbor analitik kota Yogyakarta
+          </span>
+        </div>
+      </div>
+
+      {/* 2. Scrollable Body Content */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '88px', boxSizing: 'border-box' }}>
         
-        {/* 1. Overall City Health & Active Incidents header */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '10px' }}>
+        {/* Overall City Health & Active Incidents header */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '12px' }}>
           {/* City Health */}
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '10px 12px', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '12px 14px', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
             <span style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>
               Overall City Health
             </span>
-            <strong style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '15px', color: 'var(--accent-green)', marginTop: '2px', fontWeight: '800' }}>
+            <strong style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '16px', color: '#137333', marginTop: '2px', fontWeight: '800' }}>
               {cityHealth}% <TrendUpIcon />
             </strong>
           </div>
 
           {/* Active Incidents */}
-          <div style={{ background: 'rgba(219, 68, 85, 0.12)', border: '1px solid var(--accent-danger)', borderRadius: '12px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ background: '#FDF2F2', border: '1px solid #FDE8E8', borderRadius: '16px', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
             <div>
-              <span style={{ fontSize: '8px', color: 'var(--accent-danger)', textTransform: 'uppercase', fontWeight: 'bold' }}>
+              <span style={{ fontSize: '8px', color: '#DE3737', textTransform: 'uppercase', fontWeight: 'bold' }}>
                 Incidents Active
               </span>
-              <strong style={{ display: 'block', fontSize: '15px', color: 'var(--accent-danger)', marginTop: '2px', fontWeight: '800' }}>
+              <strong style={{ display: 'block', fontSize: '16px', color: '#DE3737', marginTop: '2px', fontWeight: '800' }}>
                 {activeIncidents}
               </strong>
             </div>
@@ -145,15 +195,15 @@ export default function MobileAnalyticsTab({ uiMode }: MobileAnalyticsTabProps) 
           </div>
         </div>
 
-        {/* 2. Live Analytics Chart Viewport */}
-        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px', boxShadow: 'var(--shadow-sm)' }}>
+        {/* Live Analytics Chart Viewport */}
+        <div style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <AnalyticsIcon /> Transport Occupancy vs Demand
+            <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800' }}>
+              <AnalyticsIcon /> Occupancy vs Demand
             </strong>
             
             {/* Timeline Filter Switch */}
-            <div style={{ display: 'flex', background: 'var(--bg-tertiary)', borderRadius: '6px', padding: '1.5px' }}>
+            <div style={{ display: 'flex', background: '#F0F2F5', borderRadius: '8px', padding: '2px' }}>
               {[
                 { id: 'hari', label: 'Hari' },
                 { id: 'minggu', label: 'Minggu' },
@@ -161,17 +211,18 @@ export default function MobileAnalyticsTab({ uiMode }: MobileAnalyticsTabProps) 
               ].map(t => (
                 <button
                   key={t.id}
-                  onClick={() => { setTimeline(t.id as any); speak(`Statistik ${t.label}an dimuat.`); }}
+                  onClick={() => { setTimeline(t.id as 'hari' | 'minggu' | 'bulan'); speak(`Statistik ${t.label}an dimuat.`); }}
                   style={{
                     border: 'none',
-                    borderRadius: '4px',
-                    padding: '2px 6px',
-                    fontSize: '6.5px',
+                    borderRadius: '6px',
+                    padding: '3px 8px',
+                    fontSize: '8px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    background: timeline === t.id ? 'var(--bg-secondary)' : 'transparent',
-                    color: timeline === t.id ? 'var(--accent-blue)' : 'var(--text-muted)',
-                    boxShadow: timeline === t.id ? 'var(--shadow-sm)' : 'none'
+                    background: timeline === t.id ? 'white' : 'transparent',
+                    color: timeline === t.id ? '#1A73E8' : '#5F6368',
+                    boxShadow: timeline === t.id ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s'
                   }}
                 >
                   {t.label}
@@ -181,17 +232,17 @@ export default function MobileAnalyticsTab({ uiMode }: MobileAnalyticsTabProps) 
           </div>
 
           {/* Custom SVG Bar Chart */}
-          <div style={{ height: '100px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '0 8px', borderBottom: '1px solid var(--border-color)' }}>
+          <div style={{ height: '110px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '0 8px', borderBottom: '1px solid #E0E0E0', marginBottom: '10px' }}>
             {chartData[timeline].map((bar, idx) => (
               <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '12%', gap: '4px' }}>
-                <div style={{ display: 'flex', width: '100%', height: '70px', alignItems: 'flex-end', gap: '2px', position: 'relative' }}>
+                <div style={{ display: 'flex', width: '100%', height: '80px', alignItems: 'flex-end', gap: '2px', position: 'relative' }}>
                   
                   {/* Occupancy bar */}
                   <div 
                     style={{ 
                       flex: 1, 
                       height: `${bar.occ}%`, 
-                      background: 'linear-gradient(to top, rgba(66, 133, 244, 0.4) 0%, var(--accent-blue) 100%)', 
+                      background: 'linear-gradient(to top, rgba(26, 115, 232, 0.4) 0%, #1A73E8 100%)', 
                       borderRadius: '2px 2px 0 0',
                       transition: 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
                     }} 
@@ -202,14 +253,14 @@ export default function MobileAnalyticsTab({ uiMode }: MobileAnalyticsTabProps) 
                     style={{ 
                       flex: 1, 
                       height: `${bar.dem}%`, 
-                      background: 'linear-gradient(to top, rgba(229, 169, 59, 0.2) 0%, var(--brand-gold) 100%)', 
+                      background: 'linear-gradient(to top, rgba(229, 169, 59, 0.2) 0%, #B06000 100%)', 
                       borderRadius: '2px 2px 0 0',
                       transition: 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
                     }} 
                   />
                 </div>
                 
-                <span style={{ fontSize: '7px', color: 'var(--text-muted)', transform: 'scale(0.85)' }}>
+                <span style={{ fontSize: '8px', color: 'var(--text-muted)', transform: 'scale(0.85)' }}>
                   {bar.label}
                 </span>
               </div>
@@ -217,31 +268,31 @@ export default function MobileAnalyticsTab({ uiMode }: MobileAnalyticsTabProps) 
           </div>
           
           {/* Chart Legend */}
-          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', marginTop: '10px' }}>
+          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '8px', height: '8px', background: 'var(--accent-blue)', borderRadius: '1.5px' }} />
-              <span style={{ fontSize: '7px', color: 'var(--text-secondary)' }}>Occupancy</span>
+              <span style={{ width: '8px', height: '8px', background: '#1A73E8', borderRadius: '2px' }} />
+              <span style={{ fontSize: '8px', color: 'var(--text-secondary)' }}>Occupancy</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '8px', height: '8px', background: 'var(--brand-gold)', borderRadius: '1.5px' }} />
-              <span style={{ fontSize: '7px', color: 'var(--text-secondary)' }}>Demand</span>
+              <span style={{ width: '8px', height: '8px', background: '#B06000', borderRadius: '2px' }} />
+              <span style={{ fontSize: '8px', color: 'var(--text-secondary)' }}>Demand</span>
             </div>
           </div>
         </div>
 
-        {/* 3. Progress Ring widgets row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        {/* Progress Ring widgets row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           
           {/* Waste Efficiency Progress Circle */}
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '12px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
             <svg width="34" height="34" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="16" fill="none" stroke="var(--bg-tertiary)" strokeWidth="3.5" />
+              <circle cx="18" cy="18" r="16" fill="none" stroke="#F0F2F5" strokeWidth="3.5" />
               <circle 
                 cx="18" 
                 cy="18" 
                 r="16" 
                 fill="none" 
-                stroke="var(--accent-green)" 
+                stroke="#0F9D58" 
                 strokeWidth="3.5" 
                 strokeDasharray="85, 100" 
                 strokeDashoffset="25"
@@ -253,74 +304,74 @@ export default function MobileAnalyticsTab({ uiMode }: MobileAnalyticsTabProps) 
               </text>
             </svg>
             <div>
-              <strong style={{ fontSize: '9px', color: 'var(--text-primary)', display: 'block', letterSpacing: '-0.1px' }}>Waste Eff.</strong>
-              <span style={{ fontSize: '7px', color: 'var(--text-muted)' }}>Recycled Rate</span>
+              <strong style={{ fontSize: '10px', color: 'var(--text-primary)', display: 'block', fontWeight: '700' }}>Waste Eff.</strong>
+              <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Recycled Rate</span>
             </div>
           </div>
 
           {/* Accessibility Score */}
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '12px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
             <div style={{
               width: '34px',
               height: '34px',
               borderRadius: '50%',
-              background: 'rgba(26, 115, 232, 0.12)',
-              color: 'var(--accent-blue)',
-              fontSize: '13px',
+              background: 'rgba(26, 115, 232, 0.08)',
+              color: '#1A73E8',
+              fontSize: '14px',
               fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '1.5px solid var(--accent-blue)'
+              border: '1.5px solid #1A73E8'
             }}>
               A-
             </div>
             <div>
-              <strong style={{ fontSize: '9px', color: 'var(--text-primary)', display: 'block', letterSpacing: '-0.1px' }}>Accessibility</strong>
-              <span style={{ fontSize: '7px', color: 'var(--text-muted)' }}>City Average</span>
+              <strong style={{ fontSize: '10px', color: 'var(--text-primary)', display: 'block', fontWeight: '700' }}>Accessibility</strong>
+              <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>City Average</span>
             </div>
           </div>
 
         </div>
 
-        {/* 4. AI Predictive Insights */}
+        {/* AI Predictive Insights */}
         <div>
-          <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block', marginBottom: '8px' }}>
+          <strong style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'block', marginBottom: '8px', fontWeight: '800' }}>
             AI Predictive Insights
           </strong>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {/* Insight 1 */}
-            <div style={{ background: 'rgba(229, 169, 59, 0.12)', borderLeft: '4px solid var(--brand-gold)', borderRadius: '8px', padding: '10px 12px' }}>
+            <div style={{ background: '#FFF8E1', borderLeft: '4px solid #FFC107', borderRadius: '12px', padding: '12px', border: '1px solid #FFF5CC', borderLeftWidth: '4px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                <span style={{ color: 'var(--brand-gold)', display: 'flex' }}><LightbulbIcon /></span>
-                <strong style={{ fontSize: '9px', color: 'var(--brand-gold)' }}>Traffic Peak Predicted</strong>
+                <span style={{ color: '#FFB300', display: 'flex' }}><LightbulbIcon /></span>
+                <strong style={{ fontSize: '10px', color: '#B06000', fontWeight: 'bold' }}>Traffic Peak Predicted</strong>
               </div>
-              <p style={{ fontSize: '8px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+              <p style={{ fontSize: '9px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
                 Congestion expected at Malioboro area around 5:00 PM due to weekend market setup.
               </p>
             </div>
 
             {/* Insight 2 */}
-            <div style={{ background: 'rgba(26, 115, 232, 0.12)', borderLeft: '4px solid var(--accent-blue)', borderRadius: '8px', padding: '10px 12px' }}>
+            <div style={{ background: '#E8F0FE', borderLeft: '4px solid #1A73E8', borderRadius: '12px', padding: '12px', border: '1px solid #D2E3FC', borderLeftWidth: '4px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                <span style={{ color: 'var(--accent-blue)', display: 'flex' }}><LightbulbIcon /></span>
-                <strong style={{ fontSize: '9px', color: 'var(--accent-blue)' }}>Disease Outbreak Warning</strong>
+                <span style={{ color: '#1A73E8', display: 'flex' }}><LightbulbIcon /></span>
+                <strong style={{ fontSize: '10px', color: '#1A73E8', fontWeight: 'bold' }}>Disease Outbreak Warning</strong>
               </div>
-              <p style={{ fontSize: '8px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+              <p style={{ fontSize: '9px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
                 Dengue fever risk (Low) in Kotagede based on recent rainfall and sensor data.
               </p>
             </div>
           </div>
         </div>
 
-        {/* 5. Automated Work Orders */}
+        {/* Automated Work Orders */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <strong style={{ fontSize: '11px', color: 'var(--text-primary)' }}>
+            <strong style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '800' }}>
               Automated Work Orders
             </strong>
-            <span style={{ fontSize: '8px', color: 'var(--brand-crimson)', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => speak("Menampilkan seluruh daftar work orders.")}>
+            <span style={{ fontSize: '9px', color: '#1A73E8', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => speak("Menampilkan seluruh daftar work orders.")}>
               View All
             </span>
           </div>
@@ -330,21 +381,21 @@ export default function MobileAnalyticsTab({ uiMode }: MobileAnalyticsTabProps) 
               <div 
                 key={wo.id}
                 style={{ 
-                  background: 'var(--bg-secondary)', 
-                  border: '1px solid var(--border-color)', 
-                  borderRadius: '10px', 
-                  padding: '10px 12px',
+                  background: 'white', 
+                  border: '1px solid #E0E0E0', 
+                  borderRadius: '16px', 
+                  padding: '12px 14px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  boxShadow: 'var(--shadow-sm)'
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.01)'
                 }}
               >
                 <div>
-                  <strong style={{ fontSize: '9px', color: 'var(--text-primary)', display: 'block' }}>
+                  <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>
                     {wo.title}
                   </strong>
-                  <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
                     {wo.location} • {wo.source}
                   </span>
                 </div>
@@ -354,15 +405,16 @@ export default function MobileAnalyticsTab({ uiMode }: MobileAnalyticsTabProps) 
                   onClick={() => handleAssign(wo.id, wo.title)}
                   disabled={wo.status !== 'idle'}
                   style={{
-                    background: wo.status === 'completed' ? 'rgba(24, 128, 56, 0.15)' : wo.status === 'resolving' ? 'rgba(229, 169, 59, 0.15)' : wo.status === 'dispatched' ? 'rgba(26, 115, 232, 0.15)' : 'var(--bg-tertiary)',
-                    color: wo.status === 'completed' ? 'var(--accent-green)' : wo.status === 'resolving' ? 'var(--brand-gold)' : wo.status === 'dispatched' ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                    background: wo.status === 'completed' ? '#E6F4EA' : wo.status === 'resolving' ? '#FFF4E5' : wo.status === 'dispatched' ? '#E8F0FE' : '#F0F2F5',
+                    color: wo.status === 'completed' ? '#137333' : wo.status === 'resolving' ? '#B06000' : wo.status === 'dispatched' ? '#1A73E8' : '#5F6368',
                     border: 'none',
-                    padding: '4px 10px',
+                    padding: '6px 12px',
                     borderRadius: '12px',
-                    fontSize: '8px',
+                    fontSize: '9px',
                     fontWeight: 'bold',
                     cursor: wo.status === 'idle' ? 'pointer' : 'default',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                   }}
                 >
                   {wo.status === 'completed' && 'Selesai ✓'}
