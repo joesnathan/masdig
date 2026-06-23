@@ -101,6 +101,7 @@ export default function HomePage() {
   const [sampahCategory, setSampahCategory] = useState<'Plastik' | 'Kertas' | 'Logam'>('Plastik');
   const [sampahWeight, setSampahWeight] = useState<number>(3);
   const [sampahBalance, setSampahBalance] = useState<number>(45000);
+  const [jogjaPayBalance, setJogjaPayBalance] = useState<number>(45500);
   const [pickupHistory, setPickupHistory] = useState<Array<{ id: string; category: string; weight: number; points: number; status: string }>>([
     { id: 'SMP-082', category: 'Plastik', weight: 5, points: 15000, status: 'Selesai' },
     { id: 'SMP-114', category: 'Kertas', weight: 10, points: 20000, status: 'Selesai' }
@@ -279,7 +280,7 @@ export default function HomePage() {
       }, 500);
     } else if (mode === 'lansia') {
       setTheme('light');
-      setFontSize('font-scale-large');
+      setFontSize('font-scale-extra-large');
       setVoiceEnabled(false);
       setSpeechEnabled(false);
     } else {
@@ -589,6 +590,8 @@ export default function HomePage() {
     onRecyclePickupSubmit: handleRecyclePickupSubmit,
     sampahBalance,
     setSampahBalance,
+    jogjaPayBalance,
+    setJogjaPayBalance,
     pickupHistory,
     waterFlow,
     grateWeight,

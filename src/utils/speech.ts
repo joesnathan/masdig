@@ -13,10 +13,10 @@ export const getSpeechEnabled = () => {
   return speechEnabled;
 };
 
-export const speak = (text: string, force = false) => {
+export const speak = (text: string, _priority?: boolean) => {
   if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
-  if (!speechEnabled && !force) return;
+  if (!speechEnabled) return;
 
   // Cancel any ongoing speech to speak immediately
   window.speechSynthesis.cancel();

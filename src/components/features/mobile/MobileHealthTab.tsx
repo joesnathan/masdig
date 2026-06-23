@@ -36,7 +36,10 @@ interface MobileHealthTabProps {
   onBookHealth: () => void;
   uiMode: 'default' | 'lansia' | 'disabilitas';
   onNavigate?: (tab: 'home' | 'mobilitas' | 'lingkungan' | 'kesehatan' | 'lapor' | 'layanan') => void;
+  onDrawerStateChange?: (isOpen: boolean) => void;
 }
+
+const getFs = (size: number) => `calc(${size}px * var(--font-scale))`;
 
 // ----------------- SVG Icons Helper collection -----------------
 const PhoneIcon = () => (
@@ -73,15 +76,19 @@ export default function MobileHealthTab({
   puddleReports,
   activeRoute,
   selectedClinic,
+  setSelectedClinic,
   selectedRoom,
   setSelectedRoom,
   bookingDate,
   setBookingDate,
   onBookHealth,
   uiMode,
-  onNavigate
+  onNavigate,
+  onDrawerStateChange
 }: MobileHealthTabProps) {
   const [showAppointmentDrawer, setShowAppointmentDrawer] = useState(false);
+  const [showAllDoctors, setShowAllDoctors] = useState(false);
+  const [callingService, setCallingService] = useState<{ name: string; number: string; icon: string } | null>(null);
   const [emergencyCallState, setEmergencyCallState] = useState<'idle' | 'countdown' | 'calling'>('idle');
   const [emergencyTimer, setEmergencyTimer] = useState(3);
   const [callDuration, setCallDuration] = useState(0);
@@ -91,6 +98,14 @@ export default function MobileHealthTab({
   const [selectedDoctor, setSelectedDoctor] = useState('dr. Budi Santoso, Sp.PD');
   const [myQueue, setMyQueue] = useState<{ code: string; clinic: string; specialty: string; time: string; doctor: string; slot: string; date: string } | null>(null);
   const [showTicketModal, setShowTicketModal] = useState(false);
+
+  // Current Serving Queue state for Pelacakan Progress
+  const [currentServing, setCurrentServing] = useState(1);
+
+  // Notify parent about drawers or overlay state
+  useEffect(() => {
+    onDrawerStateChange?.(showAppointmentDrawer || showAllDoctors || emergencyCallState !== 'idle');
+  }, [showAppointmentDrawer, showAllDoctors, emergencyCallState, onDrawerStateChange]);
 
   // Active call duration counter
   useEffect(() => {
@@ -111,7 +126,8 @@ export default function MobileHealthTab({
           const next = prev - 1;
           if (next === 0) {
             setEmergencyCallState('calling');
-            speak("Menghubungi Pusat Layanan Ambulans Darurat Seratus Sembilan Belas DIY.");
+            const name = callingService?.name || "Ambulans Darurat 119";
+            speak(`Menghubungi ${name}.`);
           } else {
             speak(String(next));
           }
@@ -120,19 +136,20 @@ export default function MobileHealthTab({
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [emergencyCallState, emergencyTimer]);
+  }, [emergencyCallState, emergencyTimer, callingService]);
 
-  const handleStartEmergency = () => {
+  const handleStartEmergency = (service = { name: 'Ambulans Darurat', number: '119', icon: '🚨' }) => {
+    setCallingService(service);
     setEmergencyCallState('countdown');
     setEmergencyTimer(3);
     setCallDuration(0);
-    speak("Memulai panggilan darurat dalam tiga detik. Sentuh batalkan jika keliru.");
+    speak(`Memulai panggilan darurat ke ${service.name} dalam tiga detik. Sentuh batalkan jika keliru.`);
   };
 
   const handleCancelEmergency = () => {
     setEmergencyCallState('idle');
+    setCallingService(null);
     setEmergencyTimer(3);
-    setCallDuration(0);
     speak("Panggilan darurat dibatalkan.");
   };
 
@@ -148,6 +165,7 @@ export default function MobileHealthTab({
       slot: selectedSlot,
       date: bookingDate
     });
+    setCurrentServing(1); // Reset serving queue tracker to start from B1
     setShowAppointmentDrawer(false);
     setShowTicketModal(true);
     speak("Nomor antrean berhasil diterbitkan. Silakan simpan tiket check-in QR Anda.");
@@ -176,7 +194,7 @@ export default function MobileHealthTab({
       <div 
         style={{
           background: 'linear-gradient(180deg, #1A73E8 0%, #1557B0 100%)',
-          padding: '20px 16px 20px 16px',
+          padding: 'calc(20px * var(--font-scale)) calc(16px * var(--font-scale))',
           color: 'white',
           display: 'flex',
           flexDirection: 'column',
@@ -191,22 +209,22 @@ export default function MobileHealthTab({
           style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', width: 'fit-content' }}
         >
           <BackIcon />
-          <span style={{ fontSize: '12px', fontWeight: 600 }}>Kembali</span>
+          <span style={{ fontSize: getFs(12), fontWeight: 600 }}>Kembali</span>
         </div>
 
         {/* Title & Subtitle */}
         <div style={{ marginTop: '4px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
+          <h2 style={{ fontSize: getFs(22), fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
             Kesehatan
           </h2>
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
+          <span style={{ fontSize: getFs(11), color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
             Layanan kesehatan cerdas Yogyakarta
           </span>
         </div>
       </div>
 
       {/* 2. Scrollable Body Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '88px', boxSizing: 'border-box' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '100px', boxSizing: 'border-box' }}>
         
         {/* Peta Faskes Card */}
         <div style={{
@@ -222,7 +240,7 @@ export default function MobileHealthTab({
           position: 'relative'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <strong style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            <strong style={{ fontSize: getFs(10), fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
               PETA FASILITAS KESEHATAN
             </strong>
           </div>
@@ -250,14 +268,14 @@ export default function MobileHealthTab({
             }}>
               {/* Emergency 119 button */}
               <button
-                onClick={handleStartEmergency}
+                onClick={() => handleStartEmergency()}
                 style={{
                   background: '#ea4335',
                   color: 'white',
                   border: 'none',
                   padding: '8px 12px',
                   borderRadius: '20px',
-                  fontSize: '10px',
+                  fontSize: getFs(10),
                   fontWeight: 'bold',
                   cursor: 'pointer',
                   display: 'flex',
@@ -282,7 +300,7 @@ export default function MobileHealthTab({
                   border: 'none',
                   padding: '8px 12px',
                   borderRadius: '20px',
-                  fontSize: '10px',
+                  fontSize: getFs(10),
                   fontWeight: 'bold',
                   cursor: 'pointer',
                   display: 'flex',
@@ -298,81 +316,130 @@ export default function MobileHealthTab({
           </div>
         </div>
 
-        {/* RSUP Dr. Sardjito details */}
+        {/* Selected Clinic Details */}
         <div style={{ background: 'white', borderRadius: '16px', padding: '14px', border: '1px solid #E0E0E0', boxShadow: '0 4px 10px rgba(0,0,0,0.02)' }}>
-          <span style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>
+          <span style={{ fontSize: getFs(8), color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>
             Kapasitas Pasien • 2.4 km
           </span>
-          <strong style={{ display: 'block', fontSize: '14px', color: 'var(--text-primary)', marginTop: '2px', marginBottom: '2px', fontWeight: '800' }}>
-            RSUP Dr. Sardjito
+          <strong style={{ display: 'block', fontSize: getFs(14), color: 'var(--text-primary)', marginTop: '2px', marginBottom: '2px', fontWeight: '800' }}>
+            {selectedClinic === 'puskesmas1' ? 'RSUP Dr. Sardjito' : selectedClinic === 'puskesmas2' ? 'Puskesmas Jetis' : 'RSUD Kota Yogyakarta'}
           </strong>
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>
-            Jl. Kesehatan No.1, Senayan, Sinduadi
+          <span style={{ fontSize: getFs(10), color: 'var(--text-muted)', display: 'block' }}>
+            {selectedClinic === 'puskesmas1' ? 'Jl. Kesehatan No.1, Senayan, Sinduadi' : selectedClinic === 'puskesmas2' ? 'Jl. P. Mangkubumi No.24, Jetis' : 'Jl. Wirosaban No.1, Sorosutan'}
           </span>
 
           {/* Metrics Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '12px' }}>
             <div style={{ background: '#F4F6F9', borderRadius: '10px', padding: '8px 4px', textAlign: 'center', border: '1px solid #E0E0E0' }}>
-              <strong style={{ display: 'block', fontSize: '13px', color: 'var(--text-primary)', fontWeight: '800' }}>15</strong>
-              <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Bed Tersedia</span>
+              <strong style={{ display: 'block', fontSize: getFs(13), color: 'var(--text-primary)', fontWeight: '800' }}>15</strong>
+              <span style={{ fontSize: getFs(8), color: 'var(--text-muted)' }}>Bed Tersedia</span>
             </div>
             <div style={{ background: '#FDF2F2', borderRadius: '10px', padding: '8px 4px', textAlign: 'center', border: '1px solid #FDE8E8' }}>
-              <strong style={{ display: 'block', fontSize: '13px', color: '#DE3737', fontWeight: '800' }}>4</strong>
-              <span style={{ fontSize: '8px', color: '#DE3737' }}>Kapasitas ICU</span>
+              <strong style={{ display: 'block', fontSize: getFs(13), color: '#DE3737', fontWeight: '800' }}>4</strong>
+              <span style={{ fontSize: getFs(8), color: '#DE3737' }}>Kapasitas ICU</span>
             </div>
             <div style={{ background: '#F4F6F9', borderRadius: '10px', padding: '8px 4px', textAlign: 'center', border: '1px solid #E0E0E0' }}>
-              <strong style={{ display: 'block', fontSize: '13px', color: 'var(--text-primary)', fontWeight: '800' }}>12m</strong>
-              <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Pk. Tunggu</span>
+              <strong style={{ display: 'block', fontSize: getFs(13), color: 'var(--text-primary)', fontWeight: '800' }}>12m</strong>
+              <span style={{ fontSize: getFs(8), color: 'var(--text-muted)' }}>Pk. Tunggu</span>
             </div>
           </div>
         </div>
 
-        {/* My Queue (Antrean Saya) */}
+        {/* Dynamic Stepper Queue Tracker */}
         {myQueue && (
-          <div 
-            onClick={() => setShowTicketModal(true)}
-            style={{
-              background: 'linear-gradient(135deg, rgba(26,115,232,0.08) 0%, rgba(26,115,232,0.15) 100%)',
-              borderRadius: '16px',
-              padding: '14px',
-              border: '1px solid rgba(26,115,232,0.3)',
-              boxShadow: '0 4px 10px rgba(26,115,232,0.05)',
-              cursor: 'pointer'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <strong style={{ fontSize: '9px', color: '#1A73E8', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '800' }}>
-                Antrean Saya
+          <div style={{ background: 'white', borderRadius: '16px', padding: '16px', border: '1px solid #E0E0E0', boxShadow: '0 4px 10px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <strong style={{ fontSize: getFs(10), color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                Pelacakan Progress Antrean
               </strong>
-              <span style={{ fontSize: '9px', color: '#1A73E8', fontWeight: 'bold' }}>Lihat Tiket QR ›</span>
+              <span style={{ fontSize: getFs(9), background: '#E8F0FE', color: '#1A73E8', padding: '2px 8px', borderRadius: '8px', fontWeight: 'bold' }}>
+                Nomor Anda: {myQueue.code}
+              </span>
             </div>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <div style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '50%',
-                background: '#1A73E8',
-                color: 'white',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 6px rgba(26,115,232,0.2)'
-              }}>
-                {myQueue.code}
-              </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F4F6F9', borderRadius: '10px', padding: '10px', border: '1px solid #E0E0E0' }}>
               <div>
-                <strong style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'block', fontWeight: '700' }}>
-                  {myQueue.specialty}
-                </strong>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block', marginTop: '1px' }}>
-                  {myQueue.doctor}
-                </span>
-                <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
-                  Slot: {myQueue.slot} • Tanggal: {myQueue.date}
-                </span>
+                <span style={{ fontSize: getFs(8), color: 'var(--text-muted)', display: 'block' }}>Nomor Saat Ini Dipanggil:</span>
+                <strong style={{ fontSize: getFs(22), color: '#137333', fontWeight: 800 }}>B{currentServing}</strong>
               </div>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: getFs(8), color: 'var(--text-muted)', display: 'block' }}>Status Pelayanan:</span>
+                <strong style={{ fontSize: getFs(11), color: currentServing >= 4 ? '#137333' : '#B06000' }}>
+                  {currentServing === 4 ? 'Giliran Anda!' : currentServing > 4 ? 'Selesai Pelayanan' : `Menunggu ${4 - currentServing} Antrean Lagi`}
+                </strong>
+              </div>
+            </div>
+
+            {/* Stepper Progress Visual */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', margin: '15px 0 5px 0', padding: '0 10px' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '10px', right: '10px', height: '3px', background: '#E0E0E0', zIndex: 1, transform: 'translateY(-50%)' }} />
+              <div style={{ position: 'absolute', top: '50%', left: '10px', width: `${Math.max(0, Math.min(100, ((currentServing - 1) / 3) * 100))}%`, height: '3px', background: '#1A73E8', zIndex: 1, transform: 'translateY(-50%)' }} />
+              
+              <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: currentServing >= 1 ? '#1A73E8' : '#E0E0E0', border: '2px solid white', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: getFs(8), fontWeight: 'bold' }}>B1</div>
+              <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: currentServing >= 2 ? '#1A73E8' : '#E0E0E0', border: '2px solid white', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: getFs(8), fontWeight: 'bold' }}>B2</div>
+              <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: currentServing >= 3 ? '#1A73E8' : '#E0E0E0', border: '2px solid white', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: getFs(8), fontWeight: 'bold' }}>B3</div>
+              <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: currentServing >= 4 ? '#137333' : '#E0E0E0', border: '2px solid white', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: getFs(8), fontWeight: 'bold' }}>B4</div>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: getFs(8), color: 'var(--text-muted)', padding: '0 4px' }}>
+              <span>B1 (Dipanggil)</span>
+              <span>B2 (Verifikasi)</span>
+              <span>B3 (Poli)</span>
+              <span>B4 (Anda)</span>
+            </div>
+
+            {/* Stepper progress controller */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+              <button
+                onClick={() => {
+                  if (currentServing < 4) {
+                    const next = currentServing + 1;
+                    setCurrentServing(next);
+                    if (next === 4) {
+                      speak("Panggilan untuk nomor antrean B4. Silakan masuk ke Ruang Poli Pemeriksaan.", true);
+                    } else {
+                      speak(`Nomor antrean B${next} dipanggil.`, true);
+                    }
+                  } else if (currentServing === 4) {
+                    setCurrentServing(5);
+                    speak("Pemeriksaan selesai. Semoga lekas sembuh.", true);
+                  } else {
+                    setCurrentServing(1);
+                    speak("Simulasi diulang dari nomor B1.", true);
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  background: '#F0F4F9',
+                  border: '1px solid #1A73E8',
+                  borderRadius: '12px',
+                  padding: '8px 12px',
+                  fontSize: getFs(9),
+                  fontWeight: 'bold',
+                  color: '#1A73E8',
+                  cursor: 'pointer'
+                }}
+              >
+                ⚙️ {currentServing === 4 ? 'Selesaikan Pemeriksaan' : currentServing > 4 ? 'Reset Simulasi' : 'Panggil Antrean Berikutnya'}
+              </button>
+              
+              <button
+                onClick={() => setShowTicketModal(true)}
+                style={{
+                  flex: 1,
+                  background: '#1A73E8',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '8px 12px',
+                  fontSize: getFs(9),
+                  fontWeight: 'bold',
+                  color: 'white',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(26,115,232,0.2)'
+                }}
+              >
+                🎫 Lihat Tiket QR
+              </button>
             </div>
           </div>
         )}
@@ -380,10 +447,16 @@ export default function MobileHealthTab({
         {/* Doctor Schedules */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <strong style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '700' }}>
+            <strong style={{ fontSize: getFs(12), color: 'var(--text-primary)', fontWeight: '700' }}>
               Jadwal Dokter Hari Ini
             </strong>
-            <span style={{ fontSize: '9px', color: '#1A73E8', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => speak("Menampilkan seluruh jadwal dokter.")}>
+            <span 
+              style={{ fontSize: getFs(9), color: '#1A73E8', fontWeight: 'bold', cursor: 'pointer' }} 
+              onClick={() => {
+                setShowAllDoctors(true);
+                speak("Menampilkan seluruh jadwal dokter.");
+              }}
+            >
               Lihat Semua
             </span>
           </div>
@@ -395,13 +468,13 @@ export default function MobileHealthTab({
             ].map((d, index) => (
               <div key={index} style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '12px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '18px' }}>{d.avatar}</span>
+                  <span style={{ fontSize: getFs(18) }}>{d.avatar}</span>
                   <div>
-                    <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>{d.name}</strong>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{d.specialty}</span>
+                    <strong style={{ fontSize: getFs(11), color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>{d.name}</strong>
+                    <span style={{ fontSize: getFs(9), color: 'var(--text-muted)' }}>{d.specialty}</span>
                   </div>
                 </div>
-                <span style={{ fontSize: '9px', background: '#F4F6F9', color: 'var(--text-secondary)', padding: '3px 8px', borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', border: '1px solid #E0E0E0' }}>
+                <span style={{ fontSize: getFs(9), background: '#F4F6F9', color: 'var(--text-secondary)', padding: '3px 8px', borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', border: '1px solid #E0E0E0' }}>
                   <ClockIcon /> {d.time}
                 </span>
               </div>
@@ -411,7 +484,7 @@ export default function MobileHealthTab({
 
         {/* Nearest Facilities */}
         <div>
-          <strong style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'block', marginBottom: '8px', fontWeight: '700' }}>
+          <strong style={{ fontSize: getFs(12), color: 'var(--text-primary)', display: 'block', marginBottom: '8px', fontWeight: '700' }}>
             Fasilitas Terdekat
           </strong>
           
@@ -422,16 +495,66 @@ export default function MobileHealthTab({
             ].map((f, index) => (
               <div key={index} style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '12px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '16px' }}>🏥</span>
+                  <span style={{ fontSize: getFs(16) }}>🏥</span>
                   <div>
-                    <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>{f.name}</strong>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{f.dist}</span>
+                    <strong style={{ fontSize: getFs(11), color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>{f.name}</strong>
+                    <span style={{ fontSize: getFs(9), color: 'var(--text-muted)' }}>{f.dist}</span>
                   </div>
                 </div>
-                <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: getFs(9), color: 'var(--text-secondary)' }}>
                   {f.hours}
                 </span>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Emergency Contacts — always visible & clickable */}
+        <div>
+          <strong style={{ fontSize: getFs(12), color: 'var(--text-primary)', display: 'block', marginBottom: '8px', fontWeight: '700' }}>
+            📞 Kontak Darurat
+          </strong>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {[
+              { name: 'Ambulans Darurat', number: '119', icon: '🚨', color: '#ea4335', bg: '#FCE8E6', service: { name: 'Ambulans Darurat 119', number: '119', icon: '🚨' } },
+              { name: 'Kepolisian', number: '110', icon: '👮', color: '#1A73E8', bg: '#E8F0FE', service: { name: 'Kepolisian', number: '110', icon: '👮' } },
+              { name: 'Pemadam Kebakaran', number: '113', icon: '🚒', color: '#B06000', bg: '#FEF7E0', service: { name: 'Pemadam Kebakaran', number: '113', icon: '🚒' } },
+            ].map((em, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleStartEmergency(em.service)}
+                style={{
+                  background: em.bg,
+                  border: `1.5px solid ${em.color}22`,
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                  width: '100%',
+                  textAlign: 'left'
+                }}
+              >
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <span style={{ fontSize: getFs(18) }}>{em.icon}</span>
+                  <div>
+                    <strong style={{ display: 'block', fontSize: getFs(11), color: em.color }}>{em.name}</strong>
+                    <span style={{ fontSize: getFs(9), color: 'var(--text-muted)' }}>Tekan untuk memanggil • {em.number}</span>
+                  </div>
+                </div>
+                <span style={{
+                  background: em.color,
+                  color: 'white',
+                  borderRadius: '20px',
+                  padding: '4px 10px',
+                  fontSize: getFs(9),
+                  fontWeight: 'bold'
+                }}>
+                  {em.number}
+                </span>
+              </button>
             ))}
           </div>
         </div>
@@ -463,18 +586,40 @@ export default function MobileHealthTab({
               boxShadow: '0 -8px 24px rgba(0,0,0,0.15)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px'
+              gap: '14px',
+              boxSizing: 'border-box',
+              maxHeight: '85%',
+              overflowY: 'auto',
+              paddingBottom: '80px'
             }}
           >
             <div style={{ width: '40px', height: '4px', background: 'var(--border-color)', borderRadius: '2px', alignSelf: 'center', cursor: 'pointer' }} onClick={() => setShowAppointmentDrawer(false)} />
             
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-              <strong style={{ fontSize: '13px', color: 'var(--accent-blue)' }}>📅 Pendaftaran Poli Klinik</strong>
-              <button onClick={() => setShowAppointmentDrawer(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '16px', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+              <strong style={{ fontSize: getFs(13), color: 'var(--accent-blue)' }}>📅 Pendaftaran Poli Klinik</strong>
+              <button onClick={() => setShowAppointmentDrawer(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: getFs(16), cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+            </div>
+
+            {/* CLINIC SELECTION DROPDOWN */}
+            <div>
+              <label style={{ fontSize: getFs(9), fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Pilih Rumah Sakit / Klinik:</label>
+              <select 
+                value={selectedClinic} 
+                onChange={(e) => {
+                  setSelectedClinic(e.target.value);
+                  speak(`Rumah Sakit dipilih: ${e.target.value === 'puskesmas1' ? 'RSUP Dr. Sardjito' : e.target.value === 'puskesmas2' ? 'Puskesmas Jetis' : 'RSUD Kota Yogyakarta'}`);
+                }} 
+                className="modern-input" 
+                style={{ padding: '8px', fontSize: getFs(11) }}
+              >
+                <option value="puskesmas1">RSUP Dr. Sardjito</option>
+                <option value="puskesmas2">Puskesmas Jetis</option>
+                <option value="puskesmas3">RSUD Kota Yogyakarta</option>
+              </select>
             </div>
 
             <div>
-              <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Pilih Spesialisasi Poli:</label>
+              <label style={{ fontSize: getFs(9), fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Pilih Spesialisasi Poli:</label>
               <select 
                 value={selectedRoom} 
                 onChange={(e) => {
@@ -488,7 +633,7 @@ export default function MobileHealthTab({
                   }
                 }} 
                 className="modern-input" 
-                style={{ padding: '8px', fontSize: '11px' }}
+                style={{ padding: '8px', fontSize: getFs(11) }}
               >
                 <option value="Umum">Poli Penyakit Dalam</option>
                 <option value="Gigi">Poli Gigi & Mulut</option>
@@ -497,12 +642,12 @@ export default function MobileHealthTab({
             </div>
 
             <div>
-              <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Pilih Dokter:</label>
+              <label style={{ fontSize: getFs(9), fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Pilih Dokter:</label>
               <select
                 value={selectedDoctor}
                 onChange={(e) => setSelectedDoctor(e.target.value)}
                 className="modern-input"
-                style={{ padding: '8px', fontSize: '11px' }}
+                style={{ padding: '8px', fontSize: getFs(11) }}
               >
                 {selectedRoom === 'Umum' && <option value="dr. Budi Santoso, Sp.PD">dr. Budi Santoso, Sp.PD (Rating: 4.8)</option>}
                 {selectedRoom === 'Gigi' && <option value="dr. Siti Aminah, Sp.A">dr. Siti Aminah, Sp.A (Rating: 4.9)</option>}
@@ -511,12 +656,12 @@ export default function MobileHealthTab({
             </div>
 
             <div>
-              <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Pilih Sesi Jam (Slot):</label>
+              <label style={{ fontSize: getFs(9), fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Pilih Sesi Jam (Slot):</label>
               <select 
                 value={selectedSlot}
                 onChange={(e) => setSelectedSlot(e.target.value)}
                 className="modern-input"
-                style={{ padding: '8px', fontSize: '11px' }}
+                style={{ padding: '8px', fontSize: getFs(11) }}
               >
                 <option value="08:30 - 09:00">08:30 - 09:00 (Tersedia)</option>
                 <option value="10:00 - 10:30">10:00 - 10:30 (Tersedia)</option>
@@ -525,13 +670,13 @@ export default function MobileHealthTab({
             </div>
 
             <div>
-              <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Tanggal Periksa:</label>
+              <label style={{ fontSize: getFs(9), fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Tanggal Periksa:</label>
               <input 
                 type="date"
                 value={bookingDate}
                 onChange={(e) => setBookingDate(e.target.value)}
                 className="modern-input"
-                style={{ padding: '8px', fontSize: '11px' }}
+                style={{ padding: '8px', fontSize: getFs(11) }}
               />
             </div>
 
@@ -541,9 +686,10 @@ export default function MobileHealthTab({
               style={{
                 background: 'var(--accent-blue)',
                 padding: '10px',
-                fontSize: '11px',
+                fontSize: getFs(11),
                 boxShadow: '0 2px 6px rgba(26,115,232,0.2)',
-                marginTop: '6px'
+                marginTop: '6px',
+                width: '100%'
               }}
             >
               Konfirmasi & Ambil Nomor Antrean
@@ -560,7 +706,9 @@ export default function MobileHealthTab({
           left: 0,
           width: '100%',
           height: '100%',
-          background: '#D50000',
+          background: callingService?.number === '110' 
+            ? 'linear-gradient(180deg, #1557B0 0%, #0D3C80 100%)' 
+            : 'linear-gradient(180deg, #D50000 0%, #9A0007 100%)',
           color: 'white',
           zIndex: 2000,
           display: 'flex',
@@ -577,7 +725,7 @@ export default function MobileHealthTab({
               style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
             >
               <BackIcon />
-              <span style={{ fontSize: '12px', fontWeight: 600 }}>Kembali</span>
+              <span style={{ fontSize: getFs(12), fontWeight: 600 }}>Kembali</span>
             </div>
           </div>
 
@@ -597,10 +745,10 @@ export default function MobileHealthTab({
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
             position: 'relative'
           }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-            </svg>
-            <strong style={{ fontSize: '26px', fontWeight: '800', color: 'white', letterSpacing: '-0.5px' }}>119</strong>
+            <span style={{ fontSize: getFs(36) }}>{callingService?.icon || '🚨'}</span>
+            <strong style={{ fontSize: getFs(18), fontWeight: '800', color: 'white', letterSpacing: '-0.5px' }}>
+              {callingService?.number || '119'}
+            </strong>
 
             {emergencyCallState === 'countdown' && (
               <div style={{
@@ -615,7 +763,7 @@ export default function MobileHealthTab({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '13px',
+                fontSize: getFs(13),
                 fontWeight: 'bold',
                 boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
                 border: '2px solid white'
@@ -625,11 +773,11 @@ export default function MobileHealthTab({
             )}
           </div>
 
-          <h2 style={{ fontSize: '24px', fontWeight: '800', margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
-            Darurat 119
+          <h2 style={{ fontSize: getFs(24), fontWeight: '800', margin: 0, color: 'white', letterSpacing: '-0.5px', textAlign: 'center' }}>
+            {callingService?.name || 'Darurat 119'}
           </h2>
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '4px', marginBottom: '32px' }}>
-            {emergencyCallState === 'countdown' ? `Memulai panggilan dalam ${emergencyTimer} detik...` : 'Tekan tombol untuk memanggil bantuan'}
+          <span style={{ fontSize: getFs(11), color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '4px', marginBottom: '32px', textAlign: 'center' }}>
+            {emergencyCallState === 'countdown' ? `Memulai panggilan dalam ${emergencyTimer} detik...` : 'Menghubungi...'}
           </span>
 
           {/* Action button */}
@@ -637,16 +785,17 @@ export default function MobileHealthTab({
             <button
               onClick={() => {
                 setEmergencyCallState('calling');
-                speak("Menghubungi Ambulans 119.");
+                const name = callingService?.name || "Ambulans 119";
+                speak(`Menghubungi ${name}.`);
               }}
               style={{
                 width: '100%',
                 background: 'white',
-                color: '#D50000',
+                color: callingService?.number === '110' ? '#1557B0' : '#D50000',
                 border: 'none',
                 padding: '14px',
                 borderRadius: '24px',
-                fontSize: '13px',
+                fontSize: getFs(13),
                 fontWeight: 'bold',
                 cursor: 'pointer',
                 marginBottom: '4px',
@@ -661,10 +810,7 @@ export default function MobileHealthTab({
             </button>
           ) : (
             <button
-              onClick={() => {
-                setEmergencyCallState('idle');
-                speak("Panggilan darurat ambulans selesai.");
-              }}
+              onClick={handleCancelEmergency}
               style={{
                 width: '100%',
                 background: 'white',
@@ -672,7 +818,7 @@ export default function MobileHealthTab({
                 border: 'none',
                 padding: '14px',
                 borderRadius: '24px',
-                fontSize: '13px',
+                fontSize: getFs(13),
                 fontWeight: 'bold',
                 cursor: 'pointer',
                 marginBottom: '4px',
@@ -683,14 +829,14 @@ export default function MobileHealthTab({
                 gap: '8px'
               }}
             >
-              Hubungi 119 ({formatDuration(callDuration)})
+              Akhiri Panggilan ({formatDuration(callDuration)})
             </button>
           )}
 
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px', marginBottom: '12px' }}>
             {/* Sardjito Card */}
             <div 
-              onClick={() => speak("Menghubungi Ambulans Rumah Sakit Sardjito di nomor nol dua tujuh empat, lima delapan tujuh tiga tiga tiga.")}
+              onClick={() => handleStartEmergency({ name: 'Ambulans RSUP Sardjito', number: '(0274) 587333', icon: '🚑' })}
               style={{
                 background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.15)',
@@ -703,18 +849,18 @@ export default function MobileHealthTab({
               }}
             >
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <span style={{ fontSize: '18px' }}>🚑</span>
+                <span style={{ fontSize: getFs(18) }}>🚑</span>
                 <div>
-                  <strong style={{ display: 'block', fontSize: '11px', color: 'white' }}>Ambulans RSUP Sardjito</strong>
-                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)' }}>(0274) 587333</span>
+                  <strong style={{ display: 'block', fontSize: getFs(11), color: 'white' }}>Ambulans RSUP Sardjito</strong>
+                  <span style={{ fontSize: getFs(9), color: 'rgba(255,255,255,0.7)' }}>(0274) 587333</span>
                 </div>
               </div>
-              <span style={{ fontSize: '14px' }}>📞</span>
+              <span style={{ fontSize: getFs(14) }}>📞</span>
             </div>
 
             {/* Damkar Card */}
             <div 
-              onClick={() => speak("Menghubungi Pemadam Kebakaran di nomor seratus tiga belas.")}
+              onClick={() => handleStartEmergency({ name: 'Pemadam Kebakaran', number: '113', icon: '🚒' })}
               style={{
                 background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.15)',
@@ -727,18 +873,18 @@ export default function MobileHealthTab({
               }}
             >
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <span style={{ fontSize: '18px' }}>🚒</span>
+                <span style={{ fontSize: getFs(18) }}>🚒</span>
                 <div>
-                  <strong style={{ display: 'block', fontSize: '11px', color: 'white' }}>Pemadam Kebakaran</strong>
-                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)' }}>113</span>
+                  <strong style={{ display: 'block', fontSize: getFs(11), color: 'white' }}>Pemadam Kebakaran</strong>
+                  <span style={{ fontSize: getFs(9), color: 'rgba(255,255,255,0.7)' }}>113</span>
                 </div>
               </div>
-              <span style={{ fontSize: '14px' }}>📞</span>
+              <span style={{ fontSize: getFs(14) }}>📞</span>
             </div>
 
             {/* Police Card */}
             <div 
-              onClick={() => speak("Menghubungi Kepolisian di nomor seratus sepuluh.")}
+              onClick={() => handleStartEmergency({ name: 'Kepolisian', number: '110', icon: '👮' })}
               style={{
                 background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.15)',
@@ -751,13 +897,13 @@ export default function MobileHealthTab({
               }}
             >
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <span style={{ fontSize: '18px' }}>👮</span>
+                <span style={{ fontSize: getFs(18) }}>👮</span>
                 <div>
-                  <strong style={{ display: 'block', fontSize: '11px', color: 'white' }}>Kepolisian</strong>
-                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)' }}>110</span>
+                  <strong style={{ display: 'block', fontSize: getFs(11), color: 'white' }}>Kepolisian</strong>
+                  <span style={{ fontSize: getFs(9), color: 'rgba(255,255,255,0.7)' }}>110</span>
                 </div>
               </div>
-              <span style={{ fontSize: '14px' }}>📞</span>
+              <span style={{ fontSize: getFs(14) }}>📞</span>
             </div>
           </div>
 
@@ -796,10 +942,10 @@ export default function MobileHealthTab({
               gap: '12px'
             }}
           >
-            <span style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>
+            <span style={{ fontSize: getFs(8), color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>
               Tiket Check-in Faskes
             </span>
-            <strong style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'block', letterSpacing: '-0.3px' }}>
+            <strong style={{ fontSize: getFs(13), color: 'var(--text-primary)', display: 'block', letterSpacing: '-0.3px' }}>
               {myQueue.clinic}
             </strong>
 
@@ -832,8 +978,8 @@ export default function MobileHealthTab({
               </div>
             </div>
 
-            <div style={{ textAlign: 'left', fontSize: '9px', display: 'flex', flexDirection: 'column', gap: '4px', background: 'var(--bg-tertiary)', padding: '10px', borderRadius: '8px' }}>
-              <div><span style={{ color: 'var(--text-muted)' }}>Nomor Antrean:</span> <strong style={{ color: 'var(--accent-blue)', fontSize: '11px' }}>{myQueue.code}</strong></div>
+            <div style={{ textAlign: 'left', fontSize: getFs(9), display: 'flex', flexDirection: 'column', gap: '4px', background: 'var(--bg-tertiary)', padding: '10px', borderRadius: '8px' }}>
+              <div><span style={{ color: 'var(--text-muted)' }}>Nomor Antrean:</span> <strong style={{ color: 'var(--accent-blue)', fontSize: getFs(11) }}>{myQueue.code}</strong></div>
               <div><span style={{ color: 'var(--text-muted)' }}>Dokter:</span> <strong>{myQueue.doctor}</strong></div>
               <div><span style={{ color: 'var(--text-muted)' }}>Sesi:</span> <strong>{myQueue.slot}</strong></div>
               <div><span style={{ color: 'var(--text-muted)' }}>Tanggal:</span> <strong>{myQueue.date}</strong></div>
@@ -850,7 +996,7 @@ export default function MobileHealthTab({
                   flex: 1,
                   padding: '8px',
                   borderRadius: '20px',
-                  fontSize: '10px',
+                  fontSize: getFs(10),
                   background: 'var(--accent-blue)',
                   boxShadow: '0 4px 12px rgba(26, 115, 232, 0.2)'
                 }}
@@ -865,7 +1011,7 @@ export default function MobileHealthTab({
                   border: 'none',
                   padding: '8px',
                   borderRadius: '20px',
-                  fontSize: '10px',
+                  fontSize: getFs(10),
                   fontWeight: 'bold',
                   cursor: 'pointer',
                   color: 'var(--text-secondary)'
@@ -873,6 +1019,105 @@ export default function MobileHealthTab({
               >
                 Tutup
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Daftar Dokter "Lihat Semua" Drawer Overlay */}
+      {showAllDoctors && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0,0,0,0.5)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'flex-end',
+          animation: 'fade-in 0.2s ease'
+        }}>
+          <div 
+            className="animate-slide-up"
+            style={{
+              width: '100%',
+              background: 'var(--bg-secondary)',
+              borderTopLeftRadius: '24px',
+              borderTopRightRadius: '24px',
+              padding: '20px 24px',
+              boxShadow: '0 -8px 24px rgba(0,0,0,0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              boxSizing: 'border-box',
+              maxHeight: '85%',
+              overflowY: 'auto',
+              paddingBottom: '80px'
+            }}
+          >
+            <div style={{ width: '40px', height: '4px', background: 'var(--border-color)', borderRadius: '2px', alignSelf: 'center', cursor: 'pointer' }} onClick={() => { setShowAllDoctors(false); }} />
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+              <strong style={{ fontSize: getFs(13), color: 'var(--accent-blue)' }}>👨‍⚕️ Daftar Dokter & Jadwal Praktek</strong>
+              <button onClick={() => { setShowAllDoctors(false); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: getFs(16), cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px' }}>
+              {[
+                { name: 'dr. Budi Santoso, Sp.PD', specialty: 'Penyakit Dalam', clinicName: 'RSUD Kota Yogyakarta', clinicVal: 'puskesmas3', time: '08:00 - 12:00', avatar: '👨‍⚕️' },
+                { name: 'dr. Siti Aminah, Sp.A', specialty: 'Anak', clinicName: 'Puskesmas Jetis', clinicVal: 'puskesmas2', time: '13:00 - 16:00', avatar: '👩‍⚕️' },
+                { name: 'dr. Ahmad Hidayat, Sp.THT', specialty: 'THT', clinicName: 'RSUP Dr. Sardjito', clinicVal: 'puskesmas1', time: '09:00 - 13:00', avatar: '👨‍⚕️' },
+                { name: 'dr. Rina Wijaya, Sp.GK', specialty: 'Gizi / Dietisien', clinicName: 'Puskesmas Jetis', clinicVal: 'puskesmas2', time: '10:00 - 14:00', avatar: '👩‍⚕️' },
+                { name: 'dr. Hendra Kurniawan, Sp.JP', specialty: 'Jantung & Pembuluh', clinicName: 'RSUP Dr. Sardjito', clinicVal: 'puskesmas1', time: '14:00 - 18:00', avatar: '👨‍⚕️' },
+                { name: 'dr. Dewi Lestari, Sp.KK', specialty: 'Kulit & Kelamin', clinicName: 'RSUD Kota Yogyakarta', clinicVal: 'puskesmas3', time: '08:00 - 11:00', avatar: '👩‍⚕️' }
+              ].map((doc, idx) => (
+                <div 
+                  key={idx} 
+                  style={{ 
+                    background: 'var(--bg-tertiary)', 
+                    border: '1px solid var(--border-color)', 
+                    borderRadius: '16px', 
+                    padding: '12px', 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.01)' 
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <span style={{ fontSize: getFs(22) }}>{doc.avatar}</span>
+                    <div style={{ textAlign: 'left' }}>
+                      <strong style={{ fontSize: getFs(11.5), color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>{doc.name}</strong>
+                      <span style={{ fontSize: getFs(9.5), color: 'var(--text-secondary)', display: 'block', marginTop: '1px' }}>{doc.specialty}</span>
+                      <span style={{ fontSize: getFs(9), color: 'var(--text-muted)', display: 'block', marginTop: '1.5px' }}>📍 {doc.clinicName} • 🕒 {doc.time}</span>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      setSelectedDoctor(doc.name);
+                      setSelectedClinic(doc.clinicVal);
+                      setShowAllDoctors(false);
+                      setShowAppointmentDrawer(true);
+                      speak(`Membuka pendaftaran buat janji temu dengan ${doc.name}.`);
+                    }}
+                    style={{
+                      background: 'var(--accent-blue)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      fontSize: getFs(9.5),
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 4px rgba(26,115,232,0.1)'
+                    }}
+                  >
+                    Pilih
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>

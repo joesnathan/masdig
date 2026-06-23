@@ -127,10 +127,10 @@
   --font-scale: 1;
 }
 .font-scale-large {
-  --font-scale: 1.25;
+  --font-scale: 1.35;
 }
 .font-scale-extra-large {
-  --font-scale: 1.5;
+  --font-scale: 1.6;
 }
 
 * {
@@ -366,5 +366,192 @@ p, span, li, button, input, textarea, select {
   color: var(--text-muted);
 }
 
+/* ─── New Premium Animations ─────────────────────────────────────────────── */
 
+/* Spinner for loading states */
+@keyframes spin-anim {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin-anim 0.8s linear infinite;
+}
+
+/* Bounce-in for toast notifications */
+@keyframes bounce-in-up {
+  0%   { transform: translateY(-24px) scale(0.92); opacity: 0; }
+  60%  { transform: translateY(4px) scale(1.02); opacity: 1; }
+  80%  { transform: translateY(-2px) scale(0.99); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.animate-bounce-in {
+  animation: bounce-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Shake for error feedback */
+@keyframes shake-error {
+  0%, 100% { transform: translateX(0); }
+  15%       { transform: translateX(-6px); }
+  30%       { transform: translateX(6px); }
+  45%       { transform: translateX(-4px); }
+  60%       { transform: translateX(4px); }
+  75%       { transform: translateX(-2px); }
+  90%       { transform: translateX(2px); }
+}
+
+.animate-shake {
+  animation: shake-error 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+/* Scale-in for success states */
+@keyframes scale-in {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stagger delays for list items */
+.stagger-1 { animation-delay: 0.04s; }
+.stagger-2 { animation-delay: 0.08s; }
+.stagger-3 { animation-delay: 0.12s; }
+.stagger-4 { animation-delay: 0.16s; }
+.stagger-5 { animation-delay: 0.20s; }
+.stagger-6 { animation-delay: 0.24s; }
+
+/* Fade-in with upward movement for list items */
+@keyframes fade-up {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Gradient shift for premium backgrounds */
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Skeleton pulse override */
+@keyframes skeleton-pulse {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.animate-skeleton {
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
+/* Ripple effect */
+@keyframes ripple-out {
+  0%   { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Button tap feedback — add to interactive elements */
+.btn-tap {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.btn-tap:active {
+  transform: scale(0.95) !important;
+  opacity: 0.85;
+}
+
+/* Card hover lift — premium card interaction */
+.card-hover {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.09) !important;
+}
+
+.card-hover:active {
+  transform: scale(0.98);
+}
+
+/* Icon pop — icon entrance */
+@keyframes icon-pop {
+  0%   { transform: scale(0.6) rotate(-10deg); opacity: 0; }
+  70%  { transform: scale(1.15) rotate(3deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.animate-icon-pop {
+  animation: icon-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Live pulse for status indicators */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.animate-live {
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+/* Fade-in for overlays */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.25s ease forwards;
+}
+
+/* Slide up for drawers */
+@keyframes slide-up-drawer {
+  from { transform: translateY(100%); opacity: 0.8; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.animate-drawer-up {
+  animation: slide-up-drawer 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Count-up number animation */
+@keyframes count-appear {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-count {
+  animation: count-appear 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Glow for active/selected states */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(26, 115, 232, 0.3); }
+  50%       { box-shadow: 0 0 20px rgba(26, 115, 232, 0.6); }
+}
+
+.animate-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
 

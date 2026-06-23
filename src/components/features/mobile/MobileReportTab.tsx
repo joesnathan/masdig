@@ -21,6 +21,8 @@ interface MobileReportTabProps {
   onNavigate?: (tab: 'home' | 'mobilitas' | 'lingkungan' | 'kesehatan' | 'lapor' | 'layanan') => void;
 }
 
+const getFs = (size: number) => `calc(${size}px * var(--font-scale))`;
+
 // ----------------- SVG Icons Helper collection -----------------
 const HeartIcon = ({ filled = false, color = 'currentColor' }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill={filled ? color : 'none'} stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -239,11 +241,11 @@ export default function MobileReportTab({
       }}
     >
       
-      {/* 1. Header block (Orange Gradient for Lapor) */}
+      {/* 1. Header block */}
       <div 
         style={{
           background: 'linear-gradient(180deg, #FF9800 0%, #F57C00 100%)',
-          padding: '20px 16px 20px 16px',
+          padding: 'calc(20px * var(--font-scale)) calc(16px * var(--font-scale))',
           color: 'white',
           display: 'flex',
           flexDirection: 'column',
@@ -258,22 +260,22 @@ export default function MobileReportTab({
           style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', width: 'fit-content' }}
         >
           <BackIcon />
-          <span style={{ fontSize: '12px', fontWeight: 600 }}>Kembali</span>
+          <span style={{ fontSize: getFs(12), fontWeight: 600 }}>Kembali</span>
         </div>
 
         {/* Title & Subtitle */}
         <div style={{ marginTop: '4px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
+          <h2 style={{ fontSize: getFs(22), fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
             Lapor
           </h2>
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
+          <span style={{ fontSize: getFs(11), color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
             Laporkan masalah kota dengan foto
           </span>
         </div>
       </div>
 
       {/* 2. Scrollable Body Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '88px', boxSizing: 'border-box' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '100px', boxSizing: 'border-box' }}>
         
         {/* Buat Laporan Baru Card */}
         <div style={{
@@ -287,7 +289,7 @@ export default function MobileReportTab({
           boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
           boxSizing: 'border-box'
         }}>
-          <strong style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '800' }}>
+          <strong style={{ fontSize: getFs(13), color: 'var(--text-primary)', fontWeight: '800' }}>
             Buat Laporan Baru
           </strong>
 
@@ -322,7 +324,7 @@ export default function MobileReportTab({
                   height: '60%',
                   pointerEvents: 'none'
                 }} />
-                <span style={{ position: 'absolute', bottom: '6px', background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: '7.5px', padding: '2px 6px', borderRadius: '4px', fontWeight: '500' }}>
+                <span style={{ position: 'absolute', bottom: '6px', background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: getFs(7.5), padding: '2px 6px', borderRadius: '4px', fontWeight: '500' }}>
                   Arahkan kamera ke jalan rusak / sampah liar
                 </span>
               </div>
@@ -339,7 +341,7 @@ export default function MobileReportTab({
                 padding: '10px',
                 color: '#00ff00',
                 fontFamily: 'monospace',
-                fontSize: '8px',
+                fontSize: getFs(8),
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '4px',
@@ -378,7 +380,7 @@ export default function MobileReportTab({
                   left: '40%',
                   boxShadow: '0 0 8px rgba(234,67,53,0.8)'
                 }}>
-                  <span style={{ background: '#EA4335', color: 'white', fontSize: '6px', fontWeight: 'bold', padding: '1px 3px', position: 'absolute', top: '-10px', left: '-2px' }}>
+                  <span style={{ background: '#EA4335', color: 'white', fontSize: getFs(6), fontWeight: 'bold', padding: '1px 3px', position: 'absolute', top: '-10px', left: '-2px' }}>
                     POTHOLE: 92%
                   </span>
                 </div>
@@ -398,7 +400,7 @@ export default function MobileReportTab({
               border: 'none',
               padding: '12px',
               borderRadius: '16px',
-              fontSize: '12px',
+              fontSize: getFs(12),
               fontWeight: 'bold',
               cursor: 'pointer',
               display: 'flex',
@@ -419,7 +421,7 @@ export default function MobileReportTab({
               value={manualTitle}
               onChange={(e) => setManualTitle(e.target.value)}
               className="modern-input"
-              style={{ padding: '12px', fontSize: '11px', borderRadius: '12px', border: '1px solid #E0E0E0' }}
+              style={{ padding: '12px', fontSize: getFs(11), borderRadius: '12px', border: '1px solid #E0E0E0' }}
             />
             <input 
               type="text"
@@ -427,14 +429,14 @@ export default function MobileReportTab({
               value={manualLocation}
               onChange={(e) => setManualLocation(e.target.value)}
               className="modern-input"
-              style={{ padding: '12px', fontSize: '11px', borderRadius: '12px', border: '1px solid #E0E0E0' }}
+              style={{ padding: '12px', fontSize: getFs(11), borderRadius: '12px', border: '1px solid #E0E0E0' }}
             />
             <textarea 
               placeholder="Deskripsi kejadian..."
               value={manualDetails}
               onChange={(e) => setManualDetails(e.target.value)}
               className="modern-input"
-              style={{ padding: '12px', fontSize: '11px', borderRadius: '12px', border: '1px solid #E0E0E0', height: '60px', resize: 'none' }}
+              style={{ padding: '12px', fontSize: getFs(11), borderRadius: '12px', border: '1px solid #E0E0E0', height: '60px', resize: 'none' }}
             />
           </div>
 
@@ -449,7 +451,7 @@ export default function MobileReportTab({
               border: 'none',
               padding: '12px',
               borderRadius: '16px',
-              fontSize: '12px',
+              fontSize: getFs(12),
               fontWeight: 'bold',
               cursor: 'pointer',
               display: 'flex',
@@ -465,7 +467,7 @@ export default function MobileReportTab({
 
         {/* 3. RIWAYAT LAPORAN Section */}
         <div>
-          <strong style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: '10px' }}>
+          <strong style={{ fontSize: getFs(11), fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: '10px' }}>
             RIWAYAT LAPORAN
           </strong>
 
@@ -473,17 +475,17 @@ export default function MobileReportTab({
             
             {/* Card 1: Jalan Berlubang */}
             <div style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '14px', boxShadow: '0 4px 10px rgba(0,0,0,0.01)', position: 'relative' }}>
-              <span style={{ position: 'absolute', right: '14px', top: '14px', fontSize: '8px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>RPT-045</span>
-              <strong style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'block', fontWeight: '800' }}>
+              <span style={{ position: 'absolute', right: '14px', top: '14px', fontSize: getFs(8), color: 'var(--text-muted)', fontFamily: 'monospace' }}>RPT-045</span>
+              <strong style={{ fontSize: getFs(13), color: 'var(--text-primary)', display: 'block', fontWeight: '800' }}>
                 Jalan Berlubang
               </strong>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+              <span style={{ fontSize: getFs(10), color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
                 Jl. Gejayan depan kampus
               </span>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '10px', color: '#FF9800', fontWeight: 'bold' }}>Verifikasi</span>
-                <span style={{ fontSize: '10px', color: '#FF9800', fontWeight: 'bold' }}>40%</span>
+                <span style={{ fontSize: getFs(10), color: '#FF9800', fontWeight: 'bold' }}>Verifikasi</span>
+                <span style={{ fontSize: getFs(10), color: '#FF9800', fontWeight: 'bold' }}>40%</span>
               </div>
               <div style={{ height: '6px', width: '100%', background: '#F0F2F5', borderRadius: '3px', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: '40%', background: '#FF9800', borderRadius: '3px' }} />
@@ -491,30 +493,30 @@ export default function MobileReportTab({
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', borderTop: '1px solid #F0F2F5', paddingTop: '8px' }}>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button onClick={handleLikePothole} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: potholeLiked ? '#ea4335' : '#757575', padding: 0 }}>
+                  <button onClick={handleLikePothole} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: getFs(10), color: potholeLiked ? '#ea4335' : '#757575', padding: 0 }}>
                     <HeartIcon filled={potholeLiked} color={potholeLiked ? '#ea4335' : '#757575'} /> {potholeLikes}
                   </button>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#757575' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: getFs(10), color: '#757575' }}>
                     <CommentIcon /> 12
                   </span>
                 </div>
-                <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>1j lalu</span>
+                <span style={{ fontSize: getFs(9), color: 'var(--text-muted)' }}>1j lalu</span>
               </div>
             </div>
 
             {/* Card 2: Lampu Jalan Mati */}
             <div style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '14px', boxShadow: '0 4px 10px rgba(0,0,0,0.01)', position: 'relative' }}>
-              <span style={{ position: 'absolute', right: '14px', top: '14px', fontSize: '8px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>RPT-044</span>
-              <strong style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'block', fontWeight: '800' }}>
+              <span style={{ position: 'absolute', right: '14px', top: '14px', fontSize: getFs(8), color: 'var(--text-muted)', fontFamily: 'monospace' }}>RPT-044</span>
+              <strong style={{ fontSize: getFs(13), color: 'var(--text-primary)', display: 'block', fontWeight: '800' }}>
                 Lampu Jalan Mati
               </strong>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+              <span style={{ fontSize: getFs(10), color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
                 Jl. Malioboro No. 12
               </span>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '10px', color: '#FF9800', fontWeight: 'bold' }}>Dalam Penanganan</span>
-                <span style={{ fontSize: '10px', color: '#FF9800', fontWeight: 'bold' }}>80%</span>
+                <span style={{ fontSize: getFs(10), color: '#FF9800', fontWeight: 'bold' }}>Dalam Penanganan</span>
+                <span style={{ fontSize: getFs(10), color: '#FF9800', fontWeight: 'bold' }}>80%</span>
               </div>
               <div style={{ height: '6px', width: '100%', background: '#F0F2F5', borderRadius: '3px', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: '80%', background: '#FF9800', borderRadius: '3px' }} />
@@ -522,30 +524,30 @@ export default function MobileReportTab({
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', borderTop: '1px solid #F0F2F5', paddingTop: '8px' }}>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button onClick={handleLikePju} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: pjuLiked ? '#ea4335' : '#757575', padding: 0 }}>
+                  <button onClick={handleLikePju} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: getFs(10), color: pjuLiked ? '#ea4335' : '#757575', padding: 0 }}>
                     <HeartIcon filled={pjuLiked} color={pjuLiked ? '#ea4335' : '#757575'} /> {pjuLikes}
                   </button>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#757575' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: getFs(10), color: '#757575' }}>
                     <CommentIcon /> 5
                   </span>
                 </div>
-                <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>3j lalu</span>
+                <span style={{ fontSize: getFs(9), color: 'var(--text-muted)' }}>3j lalu</span>
               </div>
             </div>
 
             {/* Card 3: Sampah Menumpuk */}
             <div style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '14px', boxShadow: '0 4px 10px rgba(0,0,0,0.01)', position: 'relative' }}>
-              <span style={{ position: 'absolute', right: '14px', top: '14px', fontSize: '8px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>RPT-043</span>
-              <strong style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'block', fontWeight: '800' }}>
+              <span style={{ position: 'absolute', right: '14px', top: '14px', fontSize: getFs(8), color: 'var(--text-muted)', fontFamily: 'monospace' }}>RPT-043</span>
+              <strong style={{ fontSize: getFs(13), color: 'var(--text-primary)', display: 'block', fontWeight: '800' }}>
                 Sampah Menumpuk
               </strong>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+              <span style={{ fontSize: getFs(10), color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
                 Jl. Kaliurang Km 7
               </span>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '10px', color: '#FF9800', fontWeight: 'bold' }}>Selesai</span>
-                <span style={{ fontSize: '10px', color: '#FF9800', fontWeight: 'bold' }}>100%</span>
+                <span style={{ fontSize: getFs(10), color: '#FF9800', fontWeight: 'bold' }}>Selesai</span>
+                <span style={{ fontSize: getFs(10), color: '#FF9800', fontWeight: 'bold' }}>100%</span>
               </div>
               <div style={{ height: '6px', width: '100%', background: '#F0F2F5', borderRadius: '3px', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: '100%', background: '#FF9800', borderRadius: '3px' }} />
@@ -553,14 +555,14 @@ export default function MobileReportTab({
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', borderTop: '1px solid #F0F2F5', paddingTop: '8px' }}>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button onClick={handleLikeSampah} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: sampahLiked ? '#ea4335' : '#757575', padding: 0 }}>
+                  <button onClick={handleLikeSampah} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: getFs(10), color: sampahLiked ? '#ea4335' : '#757575', padding: 0 }}>
                     <HeartIcon filled={sampahLiked} color={sampahLiked ? '#ea4335' : '#757575'} /> {sampahLikes}
                   </button>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#757575' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: getFs(10), color: '#757575' }}>
                     <CommentIcon /> 9
                   </span>
                 </div>
-                <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>5j lalu</span>
+                <span style={{ fontSize: getFs(9), color: 'var(--text-muted)' }}>5j lalu</span>
               </div>
             </div>
 
@@ -568,15 +570,15 @@ export default function MobileReportTab({
             {tickets.filter(t => t.source === 'Laporan Warga').map((t, idx) => (
               <div key={idx} style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '14px', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                  <strong style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '800' }}>{t.title}</strong>
-                  <span style={{ fontSize: '8px', color: '#FF9800', background: 'rgba(255,152,0,0.1)', padding: '2px 6px', borderRadius: '10px', fontWeight: 'bold' }}>
+                  <strong style={{ fontSize: getFs(13), color: 'var(--text-primary)', fontWeight: '800' }}>{t.title}</strong>
+                  <span style={{ fontSize: getFs(8), color: '#FF9800', background: 'rgba(255,152,0,0.1)', padding: '2px 6px', borderRadius: '10px', fontWeight: 'bold' }}>
                     {t.status.toUpperCase()}
                   </span>
                 </div>
-                <p style={{ fontSize: '10px', color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: 1.4 }}>
+                <p style={{ fontSize: getFs(10), color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: 1.4 }}>
                   {t.details}
                 </p>
-                <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                <div style={{ fontSize: getFs(9), color: 'var(--text-muted)', marginTop: '8px' }}>
                   📍 {t.location} • {t.time}
                 </div>
               </div>

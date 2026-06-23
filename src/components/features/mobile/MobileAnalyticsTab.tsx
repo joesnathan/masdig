@@ -7,6 +7,8 @@ interface MobileAnalyticsTabProps {
   onNavigate?: (tab: 'home' | 'mobilitas' | 'lingkungan' | 'kesehatan' | 'lapor' | 'layanan') => void;
 }
 
+const getFs = (size: number) => `calc(${size}px * var(--font-scale))`;
+
 // ----------------- SVG Icons Helper collection -----------------
 const AnalyticsIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -137,7 +139,7 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
       <div 
         style={{
           background: 'linear-gradient(180deg, #1A73E8 0%, #1557B0 100%)',
-          padding: '20px 16px 20px 16px',
+          padding: 'calc(20px * var(--font-scale)) calc(16px * var(--font-scale))',
           color: 'white',
           display: 'flex',
           flexDirection: 'column',
@@ -152,31 +154,31 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
           style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', width: 'fit-content' }}
         >
           <BackIcon />
-          <span style={{ fontSize: '12px', fontWeight: 600 }}>Kembali</span>
+          <span style={{ fontSize: getFs(12), fontWeight: 600 }}>Kembali</span>
         </div>
 
         {/* Title & Subtitle */}
         <div style={{ marginTop: '4px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
+          <h2 style={{ fontSize: getFs(22), fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
             Live Analytics
           </h2>
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
+          <span style={{ fontSize: getFs(11), color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
             Dasbor analitik kota Yogyakarta
           </span>
         </div>
       </div>
 
       {/* 2. Scrollable Body Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '88px', boxSizing: 'border-box' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '100px', boxSizing: 'border-box' }}>
         
         {/* Overall City Health & Active Incidents header */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '12px' }}>
           {/* City Health */}
           <div style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '12px 14px', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
-            <span style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>
+            <span style={{ fontSize: getFs(8), color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>
               Overall City Health
             </span>
-            <strong style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '16px', color: '#137333', marginTop: '2px', fontWeight: '800' }}>
+            <strong style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: getFs(16), color: '#137333', marginTop: '2px', fontWeight: '800' }}>
               {cityHealth}% <TrendUpIcon />
             </strong>
           </div>
@@ -184,10 +186,10 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
           {/* Active Incidents */}
           <div style={{ background: '#FDF2F2', border: '1px solid #FDE8E8', borderRadius: '16px', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
             <div>
-              <span style={{ fontSize: '8px', color: '#DE3737', textTransform: 'uppercase', fontWeight: 'bold' }}>
+              <span style={{ fontSize: getFs(8), color: '#DE3737', textTransform: 'uppercase', fontWeight: 'bold' }}>
                 Incidents Active
               </span>
-              <strong style={{ display: 'block', fontSize: '16px', color: '#DE3737', marginTop: '2px', fontWeight: '800' }}>
+              <strong style={{ display: 'block', fontSize: getFs(16), color: '#DE3737', marginTop: '2px', fontWeight: '800' }}>
                 {activeIncidents}
               </strong>
             </div>
@@ -198,7 +200,7 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
         {/* Live Analytics Chart Viewport */}
         <div style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800' }}>
+            <strong style={{ fontSize: getFs(11), color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800' }}>
               <AnalyticsIcon /> Occupancy vs Demand
             </strong>
             
@@ -216,7 +218,7 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
                     border: 'none',
                     borderRadius: '6px',
                     padding: '3px 8px',
-                    fontSize: '8px',
+                    fontSize: getFs(8),
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     background: timeline === t.id ? 'white' : 'transparent',
@@ -236,7 +238,6 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
             {chartData[timeline].map((bar, idx) => (
               <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '12%', gap: '4px' }}>
                 <div style={{ display: 'flex', width: '100%', height: '80px', alignItems: 'flex-end', gap: '2px', position: 'relative' }}>
-                  
                   {/* Occupancy bar */}
                   <div 
                     style={{ 
@@ -247,7 +248,6 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
                       transition: 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
                     }} 
                   />
-                  
                   {/* Demand bar */}
                   <div 
                     style={{ 
@@ -259,8 +259,7 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
                     }} 
                   />
                 </div>
-                
-                <span style={{ fontSize: '8px', color: 'var(--text-muted)', transform: 'scale(0.85)' }}>
+                <span style={{ fontSize: getFs(8), color: 'var(--text-muted)', transform: 'scale(0.85)', display: 'block' }}>
                   {bar.label}
                 </span>
               </div>
@@ -271,19 +270,18 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
           <div style={{ display: 'flex', gap: '14px', justifyContent: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ width: '8px', height: '8px', background: '#1A73E8', borderRadius: '2px' }} />
-              <span style={{ fontSize: '8px', color: 'var(--text-secondary)' }}>Occupancy</span>
+              <span style={{ fontSize: getFs(8), color: 'var(--text-secondary)' }}>Occupancy</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ width: '8px', height: '8px', background: '#B06000', borderRadius: '2px' }} />
-              <span style={{ fontSize: '8px', color: 'var(--text-secondary)' }}>Demand</span>
+              <span style={{ fontSize: getFs(8), color: 'var(--text-secondary)' }}>Demand</span>
             </div>
           </div>
         </div>
 
         {/* Progress Ring widgets row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          
-          {/* Waste Efficiency Progress Circle */}
+          {/* Waste Efficiency Circle */}
           <div style={{ background: 'white', border: '1px solid #E0E0E0', borderRadius: '16px', padding: '12px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 10px rgba(0,0,0,0.01)' }}>
             <svg width="34" height="34" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="16" fill="none" stroke="#F0F2F5" strokeWidth="3.5" />
@@ -304,8 +302,8 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
               </text>
             </svg>
             <div>
-              <strong style={{ fontSize: '10px', color: 'var(--text-primary)', display: 'block', fontWeight: '700' }}>Waste Eff.</strong>
-              <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Recycled Rate</span>
+              <strong style={{ fontSize: getFs(10), color: 'var(--text-primary)', display: 'block', fontWeight: '700' }}>Waste Eff.</strong>
+              <span style={{ fontSize: getFs(8), color: 'var(--text-muted)' }}>Recycled Rate</span>
             </div>
           </div>
 
@@ -317,7 +315,7 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
               borderRadius: '50%',
               background: 'rgba(26, 115, 232, 0.08)',
               color: '#1A73E8',
-              fontSize: '14px',
+              fontSize: getFs(14),
               fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
@@ -327,38 +325,35 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
               A-
             </div>
             <div>
-              <strong style={{ fontSize: '10px', color: 'var(--text-primary)', display: 'block', fontWeight: '700' }}>Accessibility</strong>
-              <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>City Average</span>
+              <strong style={{ fontSize: getFs(10), color: 'var(--text-primary)', display: 'block', fontWeight: '700' }}>Accessibility</strong>
+              <span style={{ fontSize: getFs(8), color: 'var(--text-muted)' }}>City Average</span>
             </div>
           </div>
-
         </div>
 
         {/* AI Predictive Insights */}
         <div>
-          <strong style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'block', marginBottom: '8px', fontWeight: '800' }}>
+          <strong style={{ fontSize: getFs(12), color: 'var(--text-primary)', display: 'block', marginBottom: '8px', fontWeight: '800' }}>
             AI Predictive Insights
           </strong>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {/* Insight 1 */}
             <div style={{ background: '#FFF8E1', borderLeft: '4px solid #FFC107', borderRadius: '12px', padding: '12px', border: '1px solid #FFF5CC', borderLeftWidth: '4px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                 <span style={{ color: '#FFB300', display: 'flex' }}><LightbulbIcon /></span>
-                <strong style={{ fontSize: '10px', color: '#B06000', fontWeight: 'bold' }}>Traffic Peak Predicted</strong>
+                <strong style={{ fontSize: getFs(10), color: '#B06000', fontWeight: 'bold' }}>Traffic Peak Predicted</strong>
               </div>
-              <p style={{ fontSize: '9px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+              <p style={{ fontSize: getFs(9), color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
                 Congestion expected at Malioboro area around 5:00 PM due to weekend market setup.
               </p>
             </div>
 
-            {/* Insight 2 */}
             <div style={{ background: '#E8F0FE', borderLeft: '4px solid #1A73E8', borderRadius: '12px', padding: '12px', border: '1px solid #D2E3FC', borderLeftWidth: '4px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                 <span style={{ color: '#1A73E8', display: 'flex' }}><LightbulbIcon /></span>
-                <strong style={{ fontSize: '10px', color: '#1A73E8', fontWeight: 'bold' }}>Disease Outbreak Warning</strong>
+                <strong style={{ fontSize: getFs(10), color: '#1A73E8', fontWeight: 'bold' }}>Disease Outbreak Warning</strong>
               </div>
-              <p style={{ fontSize: '9px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+              <p style={{ fontSize: getFs(9), color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
                 Dengue fever risk (Low) in Kotagede based on recent rainfall and sensor data.
               </p>
             </div>
@@ -368,10 +363,10 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
         {/* Automated Work Orders */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <strong style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '800' }}>
+            <strong style={{ fontSize: getFs(12), color: 'var(--text-primary)', fontWeight: '800' }}>
               Automated Work Orders
             </strong>
-            <span style={{ fontSize: '9px', color: '#1A73E8', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => speak("Menampilkan seluruh daftar work orders.")}>
+            <span style={{ fontSize: getFs(9), color: '#1A73E8', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => speak("Menampilkan seluruh daftar work orders.")}>
               View All
             </span>
           </div>
@@ -392,15 +387,14 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
                 }}
               >
                 <div>
-                  <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>
+                  <strong style={{ fontSize: getFs(11), color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>
                     {wo.title}
                   </strong>
-                  <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: getFs(9), color: 'var(--text-muted)' }}>
                     {wo.location} • {wo.source}
                   </span>
                 </div>
                 
-                {/* Dispatch tracking status buttons */}
                 <button
                   onClick={() => handleAssign(wo.id, wo.title)}
                   disabled={wo.status !== 'idle'}
@@ -410,7 +404,7 @@ export default function MobileAnalyticsTab({ onNavigate }: MobileAnalyticsTabPro
                     border: 'none',
                     padding: '6px 12px',
                     borderRadius: '12px',
-                    fontSize: '9px',
+                    fontSize: getFs(9),
                     fontWeight: 'bold',
                     cursor: wo.status === 'idle' ? 'pointer' : 'default',
                     transition: 'all 0.2s',

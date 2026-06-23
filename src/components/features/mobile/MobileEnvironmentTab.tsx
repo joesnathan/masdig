@@ -33,7 +33,10 @@ interface MobileEnvironmentTabProps {
   setSampahBalance: (val: number) => void;
   uiMode: 'default' | 'lansia' | 'disabilitas';
   onNavigate?: (tab: 'home' | 'mobilitas' | 'lingkungan' | 'kesehatan' | 'lapor' | 'layanan') => void;
+  onDrawerStateChange?: (isOpen: boolean) => void;
 }
+
+const getFs = (size: number) => `calc(${size}px * var(--font-scale))`;
 
 // ----------------- SVG Icons Helper collection -----------------
 const TrashIcon = () => (
@@ -63,7 +66,8 @@ export default function MobileEnvironmentTab({
   setVehicles,
   sampahBalance,
   setSampahBalance,
-  onNavigate
+  onNavigate,
+  onDrawerStateChange
 }: MobileEnvironmentTabProps) {
   const [activeSegment, setActiveSegment] = useState<'banjir' | 'limbah'>('banjir');
   const [playCctvCode, setPlayCctvCode] = useState(false);
@@ -76,9 +80,16 @@ export default function MobileEnvironmentTab({
   const [showPickupDrawer, setShowPickupDrawer] = useState(false);
   const [wasteCategory, setWasteCategory] = useState<'Plastik' | 'Kertas' | 'Logam'>('Plastik');
   const [wasteWeight, setWasteWeight] = useState(5); // slider default 5kg
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [pickupAddressError, setPickupAddressError] = useState(false);
+
+  useEffect(() => {
+    onDrawerStateChange?.(showPickupDrawer);
+  }, [showPickupDrawer, onDrawerStateChange]);
+
   const [localHistory, setLocalHistory] = useState([
-    { id: 'SMP-082', category: 'Plastik & Kertas', points: 150, status: 'Selesai', date: '08 Des 2025' },
-    { id: 'SMP-041', category: 'Organik', points: 50, status: 'Selesai', date: '05 Des 2025' }
+    { id: 'SMP-082', category: 'Plastik & Kertas', points: 150, status: 'Selesai', date: '08 Des 2025', address: 'Jl. Malioboro No. 42, Yogyakarta' },
+    { id: 'SMP-041', category: 'Organik', points: 50, status: 'Selesai', date: '05 Des 2025', address: 'Jl. C Simanjuntak No. 12, Gondokusuman' }
   ]);
 
   // Live ticking clock effect
@@ -91,6 +102,12 @@ export default function MobileEnvironmentTab({
   }, []);
 
   const handleRequestPickup = () => {
+    if (!pickupAddress.trim()) {
+      setPickupAddressError(true);
+      speak("Gagal mengirim. Silakan masukkan alamat penjemputan Anda terlebih dahulu.", true);
+      return;
+    }
+
     const pointsGained = wasteCategory === 'Plastik' ? wasteWeight * 30 : wasteCategory === 'Kertas' ? wasteWeight * 20 : wasteWeight * 50;
     setSampahBalance(sampahBalance + pointsGained);
     
@@ -98,7 +115,7 @@ export default function MobileEnvironmentTab({
     const newId = `SMP-${Math.floor(100 + Math.random() * 899)}`;
     const dateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
     setLocalHistory(prev => [
-      { id: newId, category: `${wasteCategory} (${wasteWeight}kg)`, points: pointsGained, status: 'Jemput Kurir', date: dateStr },
+      { id: newId, category: `${wasteCategory} (${wasteWeight}kg)`, points: pointsGained, status: 'Jemput Kurir', date: dateStr, address: pickupAddress },
       ...prev
     ]);
 
@@ -118,7 +135,9 @@ export default function MobileEnvironmentTab({
       });
     }
 
-    speak(`Berhasil meminta penjemputan sampah ${wasteCategory}. Saldo poin bertambah sebesar ${pointsGained} poin.`);
+    speak(`Berhasil meminta penjemputan sampah ${wasteCategory}. Saldo poin bertambah sebesar ${pointsGained} poin. Kurir sedang menuju lokasi Anda.`, true);
+    setPickupAddress('');
+    setPickupAddressError(false);
     setShowPickupDrawer(false);
   };
 
@@ -154,11 +173,11 @@ export default function MobileEnvironmentTab({
       }}
     >
       
-      {/* 1. Header block (Green Gradient for Layanan/Environment) */}
+      {/* 1. Header block */}
       <div 
         style={{
           background: 'linear-gradient(180deg, #0F9D58 0%, #0B8043 100%)',
-          padding: '20px 16px 20px 16px',
+          padding: 'calc(20px * var(--font-scale)) calc(16px * var(--font-scale))',
           color: 'white',
           display: 'flex',
           flexDirection: 'column',
@@ -173,21 +192,21 @@ export default function MobileEnvironmentTab({
           style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', width: 'fit-content' }}
         >
           <BackIcon />
-          <span style={{ fontSize: '12px', fontWeight: 600 }}>Kembali</span>
+          <span style={{ fontSize: getFs(12), fontWeight: 600 }}>Kembali</span>
         </div>
 
         {/* Title & Subtitle */}
         <div style={{ marginTop: '4px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
+          <h2 style={{ fontSize: getFs(22), fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
             Layanan
           </h2>
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
+          <span style={{ fontSize: getFs(11), color: 'rgba(255,255,255,0.85)', display: 'block', marginTop: '2px' }}>
             Pemantauan banjir & Bank Sampah
           </span>
         </div>
       </div>
 
-      {/* 2. Segment Switcher (White Card container) */}
+      {/* 2. Segment Switcher */}
       <div style={{
         padding: '12px 16px',
         background: 'white',
@@ -211,7 +230,7 @@ export default function MobileEnvironmentTab({
               border: 'none',
               borderRadius: '18px',
               padding: '6px 0',
-              fontSize: '10.5px',
+              fontSize: getFs(10.5),
               fontWeight: 'bold',
               cursor: 'pointer',
               background: activeSegment === 'banjir' ? '#1A73E8' : 'transparent',
@@ -233,7 +252,7 @@ export default function MobileEnvironmentTab({
               border: 'none',
               borderRadius: '18px',
               padding: '6px 0',
-              fontSize: '10.5px',
+              fontSize: getFs(10.5),
               fontWeight: 'bold',
               cursor: 'pointer',
               background: activeSegment === 'limbah' ? '#0F9D58' : 'transparent',
@@ -258,7 +277,7 @@ export default function MobileEnvironmentTab({
         {activeSegment === 'banjir' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px', boxSizing: 'border-box' }}>
             
-            {/* Flood Map Viewport Card */}
+            {/* Flood Map Card */}
             <div style={{
               background: 'white',
               borderRadius: '20px',
@@ -272,12 +291,11 @@ export default function MobileEnvironmentTab({
               position: 'relative'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong style={{ fontSize: '10.5px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                <strong style={{ fontSize: getFs(10.5), fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                   PETA SENSOR REAL-TIME
                 </strong>
               </div>
               <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #E0E0E0', position: 'relative' }}>
-                {/* Visual Rivers Map Overlay from Screenshots */}
                 <div style={{
                   position: 'absolute',
                   top: 0,
@@ -286,51 +304,39 @@ export default function MobileEnvironmentTab({
                   height: '100%',
                   background: '#E8F0FE',
                   padding: '10px',
-                  boxSizing: 'border-box',
-                  fontFamily: 'system-ui, sans-serif'
+                  boxSizing: 'border-box'
                 }}>
-                  {/* Rivers lines */}
                   <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-                    {/* River 1 */}
                     <path d="M 40,20 Q 150,150 300,180" fill="none" stroke="#90CAF9" strokeWidth="6" strokeLinecap="round" />
-                    {/* River 2 */}
                     <path d="M 120,20 Q 180,180 200,210" fill="none" stroke="#90CAF9" strokeWidth="6" strokeLinecap="round" />
-                    {/* River 3 */}
                     <path d="M 280,20 Q 250,150 180,210" fill="none" stroke="#90CAF9" strokeWidth="6" strokeLinecap="round" />
                   </svg>
 
-                  {/* Labels and Nodes */}
-                  {/* Winongo Hulu */}
                   <div style={{ position: 'absolute', left: '80px', top: '45px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0F9D58', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                    <span style={{ fontSize: '7.5px', color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Winongo Hulu</span>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0F9D58', border: '2px solid white' }} />
+                    <span style={{ fontSize: getFs(7.5), color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Winongo Hulu</span>
                   </div>
 
-                  {/* Code Tengah */}
                   <div style={{ position: 'absolute', left: '175px', top: '65px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#FBBC05', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                    <span style={{ fontSize: '7.5px', color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Code Tengah</span>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#FBBC05', border: '2px solid white' }} />
+                    <span style={{ fontSize: getFs(7.5), color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Code Tengah</span>
                   </div>
 
-                  {/* Gajah Wong */}
                   <div style={{ position: 'absolute', left: '125px', top: '125px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0F9D58', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                    <span style={{ fontSize: '7.5px', color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Gajah Wong</span>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0F9D58', border: '2px solid white' }} />
+                    <span style={{ fontSize: getFs(7.5), color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Gajah Wong</span>
                   </div>
 
-                  {/* Winongo Hilir */}
                   <div style={{ position: 'absolute', left: '210px', top: '135px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0F9D58', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                    <span style={{ fontSize: '7.5px', color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Winongo Hilir</span>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0F9D58', border: '2px solid white' }} />
+                    <span style={{ fontSize: getFs(7.5), color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Winongo Hilir</span>
                   </div>
 
-                  {/* Code Hilir */}
                   <div style={{ position: 'absolute', left: '60px', top: '150px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#EA4335', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', animation: 'pulse-ring 1.5s infinite' }} />
-                    <span style={{ fontSize: '7.5px', color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Code Hilir</span>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#EA4335', border: '2px solid white', animation: 'pulse-ring 1.5s infinite' }} />
+                    <span style={{ fontSize: getFs(7.5), color: '#3C4043', marginTop: '2px', fontWeight: 'bold' }}>Code Hilir</span>
                   </div>
 
-                  {/* Map Legend Overlay */}
                   <div style={{
                     position: 'absolute',
                     bottom: '8px',
@@ -346,22 +352,22 @@ export default function MobileEnvironmentTab({
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#0F9D58' }} />
-                      <span style={{ fontSize: '7px', color: '#5F6368' }}>Normal</span>
+                      <span style={{ fontSize: getFs(7), color: '#5F6368' }}>Normal</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FBBC05' }} />
-                      <span style={{ fontSize: '7px', color: '#5F6368' }}>Waspada</span>
+                      <span style={{ fontSize: getFs(7), color: '#5F6368' }}>Waspada</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EA4335' }} />
-                      <span style={{ fontSize: '7px', color: '#5F6368' }}>Banjir</span>
+                      <span style={{ fontSize: getFs(7), color: '#5F6368' }}>Banjir</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* River Levels Section Card */}
+            {/* River Levels */}
             <div style={{
               background: 'white',
               borderRadius: '20px',
@@ -373,7 +379,7 @@ export default function MobileEnvironmentTab({
               boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
               boxSizing: 'border-box'
             }}>
-              <strong style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '800' }}>
+              <strong style={{ fontSize: getFs(12), color: 'var(--text-primary)', fontWeight: '800' }}>
                 Level Sungai
               </strong>
 
@@ -384,7 +390,7 @@ export default function MobileEnvironmentTab({
                   { name: 'Sungai Gajah Wong', value: '1.1m', percentage: 58, color: '#00B0FF' }
                 ].map((river, idx) => (
                   <div key={idx}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 'bold', color: '#1C1E21', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: getFs(11), fontWeight: 'bold', color: '#1C1E21', marginBottom: '4px' }}>
                       <span>{river.name}</span>
                       <span style={{ color: '#1A73E8' }}>{river.value}</span>
                     </div>
@@ -396,7 +402,7 @@ export default function MobileEnvironmentTab({
               </div>
             </div>
 
-            {/* CCTV Live Section Card */}
+            {/* CCTV Live */}
             <div style={{
               background: 'white',
               borderRadius: '20px',
@@ -409,17 +415,16 @@ export default function MobileEnvironmentTab({
               boxSizing: 'border-box'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800' }}>
+                <strong style={{ fontSize: getFs(11), color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800' }}>
                   <VideoIcon /> CCTV LIVE
                 </strong>
-                <span style={{ fontSize: '8px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: getFs(8), color: 'var(--text-muted)', fontFamily: 'monospace' }}>
                   {cctvClock}
                 </span>
               </div>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                
-                {/* CCTV 1: Pintu Air Code */}
+                {/* CCTV 1 */}
                 <div style={{ background: '#F4F6F9', borderRadius: '12px', border: '1px solid #E0E0E0', overflow: 'hidden', padding: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <div style={{ height: '90px', background: '#20232D', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
                     {playCctvCode ? (
@@ -427,14 +432,11 @@ export default function MobileEnvironmentTab({
                         src="https://www.youtube.com/embed/live_stream?channel=UCw_bU-Yf3y43u8qB6G77d3A&autoplay=1&mute=1" 
                         title="Pintu Air Code" 
                         style={{ width: '100%', height: '100%', border: 'none' }}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       />
                     ) : (
-                      <span style={{ fontSize: '20px', color: '#95a5a6' }}>📹</span>
+                      <span style={{ fontSize: getFs(20), color: '#95a5a6' }}>📹</span>
                     )}
-                    
-                    {/* Live red badge */}
                     <div style={{
                       position: 'absolute',
                       top: '6px',
@@ -443,23 +445,20 @@ export default function MobileEnvironmentTab({
                       color: 'white',
                       padding: '2px 4px',
                       borderRadius: '4px',
-                      fontSize: '6.5px',
+                      fontSize: getFs(6.5),
                       fontWeight: 'bold',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '2px',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      gap: '2px'
                     }}>
                       <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'white', display: 'inline-block' }} />
                       LIVE
                     </div>
                   </div>
-                  
                   <div style={{ padding: '2px 4px 0 4px' }}>
-                    <strong style={{ fontSize: '9px', color: 'var(--text-primary)', display: 'block' }}>Pintu Air Sungai Code</strong>
-                    <span style={{ fontSize: '7.5px', color: 'var(--text-muted)' }}>Kota Jogja</span>
+                    <strong style={{ fontSize: getFs(9), color: 'var(--text-primary)', display: 'block' }}>Pintu Air Sungai Code</strong>
+                    <span style={{ fontSize: getFs(7.5), color: 'var(--text-muted)' }}>Kota Jogja</span>
                   </div>
-
                   <button
                     onClick={handleToggleCctvCode}
                     style={{
@@ -469,21 +468,16 @@ export default function MobileEnvironmentTab({
                       border: 'none',
                       padding: '6px 0',
                       borderRadius: '8px',
-                      fontSize: '9px',
+                      fontSize: getFs(9),
                       fontWeight: 'bold',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '4px',
-                      boxShadow: '0 2px 4px rgba(26,115,232,0.1)'
+                      cursor: 'pointer'
                     }}
                   >
-                    {playCctvCode ? '⏸ Jeda CCTV' : '▷ Lihat CCTV'}
+                    {playCctvCode ? '⏸ Jeda' : '▷ Lihat'}
                   </button>
                 </div>
 
-                {/* CCTV 2: Simpang Tugu */}
+                {/* CCTV 2 */}
                 <div style={{ background: '#F4F6F9', borderRadius: '12px', border: '1px solid #E0E0E0', overflow: 'hidden', padding: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <div style={{ height: '90px', background: '#20232D', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
                     {playCctvTugu ? (
@@ -491,14 +485,11 @@ export default function MobileEnvironmentTab({
                         src="https://www.youtube.com/embed/live_stream?channel=UCxS-G24K6-l7i4_G5N0V8oA&autoplay=1&mute=1" 
                         title="Simpang Tugu" 
                         style={{ width: '100%', height: '100%', border: 'none' }}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       />
                     ) : (
-                      <span style={{ fontSize: '20px', color: '#95a5a6' }}>📹</span>
+                      <span style={{ fontSize: getFs(20), color: '#95a5a6' }}>📹</span>
                     )}
-
-                    {/* Live red badge */}
                     <div style={{
                       position: 'absolute',
                       top: '6px',
@@ -507,23 +498,20 @@ export default function MobileEnvironmentTab({
                       color: 'white',
                       padding: '2px 4px',
                       borderRadius: '4px',
-                      fontSize: '6.5px',
+                      fontSize: getFs(6.5),
                       fontWeight: 'bold',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '2px',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      gap: '2px'
                     }}>
                       <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'white', display: 'inline-block' }} />
                       LIVE
                     </div>
                   </div>
-
                   <div style={{ padding: '2px 4px 0 4px' }}>
-                    <strong style={{ fontSize: '9px', color: 'var(--text-primary)', display: 'block' }}>Simpang Tugu</strong>
-                    <span style={{ fontSize: '7.5px', color: 'var(--text-muted)' }}>Pal Putih</span>
+                    <strong style={{ fontSize: getFs(9), color: 'var(--text-primary)', display: 'block' }}>Simpang Tugu</strong>
+                    <span style={{ fontSize: getFs(7.5), color: 'var(--text-muted)' }}>Pal Putih</span>
                   </div>
-
                   <button
                     onClick={handleToggleCctvTugu}
                     style={{
@@ -533,20 +521,14 @@ export default function MobileEnvironmentTab({
                       border: 'none',
                       padding: '6px 0',
                       borderRadius: '8px',
-                      fontSize: '9px',
+                      fontSize: getFs(9),
                       fontWeight: 'bold',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '4px',
-                      boxShadow: '0 2px 4px rgba(26,115,232,0.1)'
+                      cursor: 'pointer'
                     }}
                   >
-                    {playCctvTugu ? '⏸ Jeda CCTV' : '▷ Lihat CCTV'}
+                    {playCctvTugu ? '⏸ Jeda' : '▷ Lihat'}
                   </button>
                 </div>
-
               </div>
             </div>
 
@@ -569,18 +551,18 @@ export default function MobileEnvironmentTab({
               alignItems: 'center'
             }}>
               <div>
-                <span style={{ fontSize: '9px', opacity: 0.8, textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: getFs(9), opacity: 0.8, textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>
                   Poin Bank Sampah Anda
                 </span>
-                <strong style={{ display: 'block', fontSize: '24px', marginTop: '4px', fontWeight: '800' }}>
-                  {sampahBalance.toLocaleString()} <span style={{ fontSize: '11px', fontWeight: 'normal', opacity: 0.9 }}>pts</span>
+                <strong style={{ display: 'block', fontSize: getFs(24), marginTop: '4px', fontWeight: '800' }}>
+                  {sampahBalance.toLocaleString()} <span style={{ fontSize: getFs(11), fontWeight: 'normal', opacity: 0.9 }}>pts</span>
                 </strong>
               </div>
               
               <button
                 onClick={() => {
                   setShowPickupDrawer(true);
-                  speak("Membuka laci request penjemputan sampah daur ulang.");
+                  speak("Membuka form request penjemputan sampah.");
                 }}
                 style={{
                   background: 'white',
@@ -588,10 +570,9 @@ export default function MobileEnvironmentTab({
                   border: 'none',
                   padding: '8px 16px',
                   borderRadius: '20px',
-                  fontSize: '10px',
+                  fontSize: getFs(10),
                   fontWeight: 'bold',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                  cursor: 'pointer'
                 }}
               >
                 Request Pickup
@@ -600,7 +581,7 @@ export default function MobileEnvironmentTab({
 
             {/* Riwayat Daur Ulang */}
             <div>
-              <strong style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'block', marginBottom: '10px', fontWeight: '700' }}>
+              <strong style={{ fontSize: getFs(12), color: 'var(--text-primary)', display: 'block', marginBottom: '10px', fontWeight: '700' }}>
                 Riwayat Setoran Daur Ulang
               </strong>
               
@@ -622,21 +603,26 @@ export default function MobileEnvironmentTab({
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <span style={{ color: '#2e7d32', display: 'flex' }}><TrashIcon /></span>
                       <div>
-                        <strong style={{ fontSize: '11px', color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>
+                        <strong style={{ fontSize: getFs(11), color: 'var(--text-primary)', display: 'block', fontWeight: '600' }}>
                           {item.category}
                         </strong>
-                        <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+                        <span style={{ fontSize: getFs(9), color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
                           {item.date} • {item.id}
                         </span>
+                        {item.address && (
+                          <span style={{ fontSize: getFs(8.5), color: 'var(--text-muted)', display: 'block', marginTop: '2px', fontStyle: 'italic' }}>
+                            📍 {item.address}
+                          </span>
+                        )}
                       </div>
                     </div>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
-                      <strong style={{ fontSize: '12px', color: '#137333', fontWeight: '800' }}>
+                      <strong style={{ fontSize: getFs(12), color: '#137333', fontWeight: '800' }}>
                         +{item.points} pts
                       </strong>
                       <span style={{
-                        fontSize: '8px',
+                        fontSize: getFs(8),
                         background: item.status === 'Selesai' ? '#E6F4EA' : '#FFF4E5',
                         color: item.status === 'Selesai' ? '#137333' : '#B06000',
                         padding: '2px 6px',
@@ -682,23 +668,27 @@ export default function MobileEnvironmentTab({
               boxShadow: '0 -8px 24px rgba(0,0,0,0.15)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px'
+              gap: '14px',
+              boxSizing: 'border-box',
+              maxHeight: '85%',
+              overflowY: 'auto',
+              paddingBottom: '80px'
             }}
           >
             <div style={{ width: '40px', height: '4px', background: 'var(--border-color)', borderRadius: '2px', alignSelf: 'center', cursor: 'pointer' }} onClick={() => setShowPickupDrawer(false)} />
             
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-              <strong style={{ fontSize: '13px', color: 'var(--accent-green)' }}>♻️ Jadwalkan Setor Sampah</strong>
-              <button onClick={() => setShowPickupDrawer(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '16px', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+              <strong style={{ fontSize: getFs(13), color: 'var(--accent-green)' }}>♻️ Jadwalkan Setor Sampah</strong>
+              <button onClick={() => setShowPickupDrawer(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: getFs(16), cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
             </div>
 
             <div>
-              <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Kategori Sampah:</label>
+              <label style={{ fontSize: getFs(9), fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Kategori Sampah:</label>
               <select 
                 value={wasteCategory} 
                 onChange={(e) => setWasteCategory(e.target.value as 'Plastik' | 'Kertas' | 'Logam')} 
                 className="modern-input" 
-                style={{ padding: '8px', fontSize: '11px' }}
+                style={{ padding: '8px', fontSize: getFs(11) }}
               >
                 <option value="Plastik">Plastik & Kertas (30 pts/kg)</option>
                 <option value="Kertas">Kertas Bekas (20 pts/kg)</option>
@@ -709,8 +699,8 @@ export default function MobileEnvironmentTab({
             {/* WEIGHT SLIDER COUNTER */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>Perkiraan Berat:</label>
-                <strong style={{ fontSize: '12px', color: 'var(--accent-green)' }}>{wasteWeight} kg</strong>
+                <label style={{ fontSize: getFs(9), fontWeight: 'bold', color: 'var(--text-muted)' }}>Perkiraan Berat:</label>
+                <strong style={{ fontSize: getFs(12), color: 'var(--accent-green)' }}>{wasteWeight} kg</strong>
               </div>
               <input
                 type="range"
@@ -730,10 +720,41 @@ export default function MobileEnvironmentTab({
               />
             </div>
 
+            {/* PICKUP ADDRESS TEXTAREA INPUT */}
+            <div>
+              <label style={{ fontSize: getFs(9), fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                Alamat Penjemputan:
+              </label>
+              <textarea
+                value={pickupAddress}
+                onChange={(e) => {
+                  setPickupAddress(e.target.value);
+                  if (e.target.value.trim()) {
+                    setPickupAddressError(false);
+                  }
+                }}
+                placeholder="Masukkan alamat penjemputan lengkap Anda..."
+                className="modern-input"
+                style={{
+                  padding: '8px 12px',
+                  fontSize: getFs(11),
+                  height: '60px',
+                  resize: 'none',
+                  border: pickupAddressError ? '2px solid var(--accent-danger)' : '1px solid var(--border-color)',
+                  borderRadius: '12px'
+                }}
+              />
+              {pickupAddressError && (
+                <span style={{ fontSize: getFs(8), color: 'var(--accent-danger)', marginTop: '2px', display: 'block' }}>
+                  * Alamat wajib diisi untuk melakukan penjemputan.
+                </span>
+              )}
+            </div>
+
             {/* Animate potential reward pts dynamically */}
             <div style={{ background: 'var(--bg-tertiary)', borderRadius: '10px', padding: '10px 12px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Estimasi Reward Poin:</span>
-              <strong style={{ fontSize: '13px', color: 'var(--accent-green)' }}>+{estimatedPoints} pts</strong>
+              <span style={{ fontSize: getFs(9), color: 'var(--text-secondary)' }}>Estimasi Reward Poin:</span>
+              <strong style={{ fontSize: getFs(13), color: 'var(--accent-green)' }}>+{estimatedPoints} pts</strong>
             </div>
 
             <button
@@ -742,9 +763,10 @@ export default function MobileEnvironmentTab({
               style={{
                 background: 'var(--accent-green)',
                 padding: '10px',
-                fontSize: '11px',
+                fontSize: getFs(11),
                 boxShadow: '0 2px 6px rgba(46,125,50,0.2)',
-                marginTop: '6px'
+                marginTop: '6px',
+                width: '100%'
               }}
             >
               Setor & Panggil Kurir Jemput

@@ -1,6 +1,11 @@
 // MobileApp.tsx - Smartphone optimized interface matching official JogjaOne screens
 import React, { useState } from 'react';
-import { speak } from '@/utils/speech';
+import { speak, setSpeechEnabled } from '@/utils/speech';
+import { ToastProvider, useToast } from './Toast';
+import {
+  LogoutIcon, SettingsIcon, BellIcon, SpinnerIcon,
+  CheckCircleIcon, DisabilityIcon, ElderlyIcon, WarningIcon
+} from './Icons';
 
 // Import newly created modular mobile tabs
 import MobileHomeTab from './MobileHomeTab';
@@ -50,6 +55,9 @@ interface MobileAppProps {
   setFontSize: (fontSize: string) => void;
   voiceEnabled: boolean;
   setVoiceEnabled: (val: boolean) => void;
+  onLogout: () => void;
+  jogjaPayBalance: number;
+  setJogjaPayBalance: React.Dispatch<React.SetStateAction<number>>;
   
   // Shared States
   v2xActive: boolean;
@@ -181,27 +189,78 @@ const SettingsNavIcon = () => (
 );
 
 export default function MobileApp(props: MobileAppProps) {
+  return (
+    <ToastProvider>
+      <MobileAppInner {...props} />
+    </ToastProvider>
+  );
+}
+
+function MobileAppInner(props: MobileAppProps) {
   // Tabs: 'home' (Beranda), 'mobilitas', 'kesehatan', 'lapor', 'layanan' (Layanan/Analytics), 'lingkungan' (Environment Subview)
   const [activeTab, setActiveTab] = useState<'home' | 'mobilitas' | 'lingkungan' | 'kesehatan' | 'lapor' | 'layanan'>('home');
   const [activeDrawer, setActiveDrawer] = useState<'more' | null>(null);
   const [showSplash, setShowSplash] = useState(true);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [loginShake, setLoginShake] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const toast = useToast();
 
   const handleUiModeSelect = (newMode: 'default' | 'lansia' | 'disabilitas', label: string) => {
     props.setUiMode(newMode);
-    speak(`Profil Aksesibilitas diaktifkan: ${label}`);
     if (newMode === 'disabilitas') {
       props.setTheme('high-contrast');
       props.setFontSize('font-scale-large');
       props.setVoiceEnabled(true);
+      setSpeechEnabled(true);
+      speak("Mode difabel aktif. Suara pemandu dihidupkan secara otomatis. Selamat datang di JogjaOne.");
     } else if (newMode === 'lansia') {
       props.setTheme('light');
-      props.setFontSize('font-scale-large');
+      props.setFontSize('font-scale-extra-large');
       props.setVoiceEnabled(false);
+      setSpeechEnabled(false);
     } else {
       props.setTheme('light');
       props.setFontSize('font-scale-medium');
       props.setVoiceEnabled(false);
+      setSpeechEnabled(false);
     }
+  };
+
+  const handleLoginSubmit = () => {
+    if (!props.username.trim()) {
+      setLoginError('NIK / Username tidak boleh kosong.');
+      setLoginShake(true);
+      setTimeout(() => setLoginShake(false), 600);
+      return;
+    }
+    if (!props.password.trim()) {
+      setLoginError('Password tidak boleh kosong.');
+      setLoginShake(true);
+      setTimeout(() => setLoginShake(false), 600);
+      return;
+    }
+    if (props.password.length < 4) {
+      setLoginError('Password minimal 4 karakter.');
+      setLoginShake(true);
+      setTimeout(() => setLoginShake(false), 600);
+      return;
+    }
+    setLoginError('');
+    setLoginLoading(true);
+    // Simulate async login
+    setTimeout(() => {
+      try {
+        props.onLoginSubmit();
+        toast.showSuccess('Berhasil masuk!', `Selamat datang kembali, ${props.username}.`);
+      } catch {
+        setLoginError('Terjadi kesalahan. Silakan coba lagi.');
+        toast.showError('Login gagal', 'Silakan periksa koneksi Anda.');
+      } finally {
+        setLoginLoading(false);
+      }
+    }, 600);
   };
 
   if (!props.isLoggedIn) {
@@ -385,7 +444,8 @@ export default function MobileApp(props: MobileAppProps) {
 
         {/* Floating Form Overlay Card */}
         <form 
-          onSubmit={props.onLoginSubmit}
+          onSubmit={(e) => { e.preventDefault(); handleLoginSubmit(); }}
+          className={loginShake ? 'animate-shake' : ''}
           style={{ 
             display: 'flex', 
             flexDirection: 'column', 
@@ -507,24 +567,45 @@ export default function MobileApp(props: MobileAppProps) {
           </div>
         </form>
 
+        {/* Error message */}
+        {loginError && (
+          <div className="animate-fade-up" style={{
+            width: '90%', margin: '-8px auto 0 auto',
+            background: '#FCE8E6', border: '1px solid #FAD2CF',
+            borderRadius: '10px', padding: '8px 12px',
+            display: 'flex', gap: '6px', alignItems: 'center'
+          }}>
+            <WarningIcon size={14} color="#C5221F" strokeWidth={2.5} />
+            <span style={{ fontSize: '11px', color: '#C5221F', fontWeight: 500 }}>{loginError}</span>
+          </div>
+        )}
+
         {/* Main Action Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '90%', margin: '0 auto' }}>
           <button
-            onClick={() => props.onLoginSubmit()}
+            onClick={handleLoginSubmit}
+            disabled={loginLoading}
+            className="btn-tap"
             style={{
               width: '100%',
-              background: '#1A73E8',
+              background: loginLoading ? '#93b4e0' : '#1A73E8',
               color: 'white',
               border: 'none',
               padding: '14px',
               borderRadius: '16px',
               fontSize: '13px',
               fontWeight: 'bold',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(26,115,232,0.2)'
+              cursor: loginLoading ? 'not-allowed' : 'pointer',
+              boxShadow: '0 4px 12px rgba(26,115,232,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              transition: 'all 0.2s'
             }}
           >
-            Masuk Layanan Cerdas
+            {loginLoading ? (
+              <><SpinnerIcon size={16} color="white" /> Memverifikasi...</>
+            ) : (
+              <><CheckCircleIcon size={16} color="white" strokeWidth={2.5} /> Masuk Layanan Cerdas</>
+            )}
           </button>
           
           <button
@@ -553,9 +634,9 @@ export default function MobileApp(props: MobileAppProps) {
           </span>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '0 5%', boxSizing: 'border-box', marginBottom: '24px' }}>
-            {/* Lansia Mode Trigger */}
             <div 
               onClick={() => handleUiModeSelect('lansia', 'Lansia')}
+              className="card-hover"
               style={{
                 background: 'white',
                 borderRadius: '20px',
@@ -570,14 +651,19 @@ export default function MobileApp(props: MobileAppProps) {
                 gap: '8px'
               }}
             >
-              <span style={{ fontSize: '28px' }}>👴</span>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '50%',
+                background: '#FEF7E0', display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                <ElderlyIcon size={22} color="#B06000" strokeWidth={1.8} />
+              </div>
               <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Lansia</strong>
               <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Tampilan besar</span>
             </div>
 
-            {/* Difabel Mode Trigger */}
             <div 
               onClick={() => handleUiModeSelect('disabilitas', 'Difabel')}
+              className="card-hover"
               style={{
                 background: 'white',
                 borderRadius: '20px',
@@ -593,15 +679,10 @@ export default function MobileApp(props: MobileAppProps) {
               }}
             >
               <div style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '6px',
-                background: '#1A73E8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                width: '36px', height: '36px', borderRadius: '50%',
+                background: '#E8F0FE', display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
-                <span style={{ fontSize: '18px', color: 'white', fontWeight: 'bold' }}>♿</span>
+                <DisabilityIcon size={22} color="#1A73E8" strokeWidth={1.8} />
               </div>
               <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Difabel</strong>
               <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Akses asistif</span>
@@ -655,26 +736,50 @@ export default function MobileApp(props: MobileAppProps) {
           </div>
 
           {/* Right Notification and Accessibility Trigger */}
-          <button 
-            onClick={() => {
-              speak("Membuka pengaturan aksesibilitas");
-              setActiveDrawer('more');
-            }}
-            style={{ 
-              background: 'var(--bg-tertiary)', 
-              border: 'none', 
-              color: 'var(--text-primary)', 
-              width: '32px', 
-              height: '32px', 
-              borderRadius: '50%', 
-              cursor: 'pointer', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center'
-            }}
-          >
-            <SettingsNavIcon />
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              onClick={() => {
+                toast.showInfo('Keluar...', 'Sesi Anda berakhir.');
+                setTimeout(() => props.onLogout?.(), 400);
+              }}
+              className="btn-tap"
+              style={{
+                background: '#ea4335',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '6px 10px',
+                fontSize: 'calc(10px * var(--font-scale))',
+                fontWeight: 'bold',
+                color: 'white',
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(234,67,53,0.15)',
+                display: 'flex', alignItems: 'center', gap: '4px'
+              }}
+            >
+              <LogoutIcon size={12} color="white" strokeWidth={2.5} />
+              Keluar
+            </button>
+            <button 
+              onClick={() => {
+                speak("Membuka pengaturan aksesibilitas");
+                setActiveDrawer('more');
+              }}
+              style={{ 
+                background: 'var(--bg-tertiary)', 
+                border: 'none', 
+                color: 'var(--text-primary)', 
+                width: '32px', 
+                height: '32px', 
+                borderRadius: '50%', 
+                cursor: 'pointer', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center'
+              }}
+            >
+              <SettingsNavIcon />
+            </button>
+          </div>
         </header>
       )}
 
@@ -690,6 +795,9 @@ export default function MobileApp(props: MobileAppProps) {
             v2xActive={props.v2xActive}
             username={props.username}
             sampahBalance={props.sampahBalance}
+            jogjaPayBalance={props.jogjaPayBalance}
+            setJogjaPayBalance={props.setJogjaPayBalance}
+            onDrawerStateChange={setIsDrawerOpen}
           />
         )}
 
@@ -708,6 +816,10 @@ export default function MobileApp(props: MobileAppProps) {
               setActiveTab(tab);
               speak(`Membuka halaman ${tab}`);
             }}
+            jogjaPayBalance={props.jogjaPayBalance}
+            setJogjaPayBalance={props.setJogjaPayBalance}
+            onBookTransit={props.onBookTransit}
+            onDrawerStateChange={setIsDrawerOpen}
           />
         )}
 
@@ -727,6 +839,7 @@ export default function MobileApp(props: MobileAppProps) {
               setActiveTab(tab);
               speak(`Membuka halaman ${tab}`);
             }}
+            onDrawerStateChange={setIsDrawerOpen}
           />
         )}
 
@@ -748,6 +861,7 @@ export default function MobileApp(props: MobileAppProps) {
               setActiveTab(tab);
               speak(`Membuka halaman ${tab}`);
             }}
+            onDrawerStateChange={setIsDrawerOpen}
           />
         )}
 
@@ -767,51 +881,8 @@ export default function MobileApp(props: MobileAppProps) {
 
       </div>
 
-      {/* Floating emergency button - fixed at app level */}
-      {['home', 'mobilitas', 'lingkungan', 'lapor'].includes(activeTab) && (
-        <button 
-          onClick={() => {
-            speak("Membuka menu Panggilan Darurat Medis Ambulans 119.");
-            setActiveTab('kesehatan');
-          }}
-          style={{
-            position: 'absolute',
-            bottom: '76px',
-            right: '16px',
-            width: '54px',
-            height: '54px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #FF1744 0%, #D50000 100%)',
-            border: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: '0 8px 24px rgba(213,0,0,0.3)',
-            zIndex: 99
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-          </svg>
-          <div style={{
-            position: 'absolute',
-            top: '-4px',
-            right: '-4px',
-            background: '#FF0000',
-            color: 'white',
-            borderRadius: '10px',
-            padding: '2px 5px',
-            fontSize: '7.5px',
-            fontWeight: '900',
-            border: '1.5px solid white',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            lineHeight: 1
-          }}>
-            119
-          </div>
-        </button>
-      )}
+
+
 
       {/* 3. BOTTOM TAB NAVIGATION BAR */}
       <nav 
@@ -902,7 +973,10 @@ export default function MobileApp(props: MobileAppProps) {
               boxShadow: '0 -8px 24px rgba(0,0,0,0.15)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px'
+              gap: '14px',
+              paddingBottom: '80px',
+              overflowY: 'auto',
+              maxHeight: '85%'
             }}
           >
             <div style={{ width: '40px', height: '4px', background: 'var(--border-color)', borderRadius: '2px', alignSelf: 'center', cursor: 'pointer' }} onClick={() => setActiveDrawer(null)} />
@@ -945,7 +1019,18 @@ export default function MobileApp(props: MobileAppProps) {
                 <span style={{ fontSize: '7px', color: 'var(--text-muted)' }}>Membantu membaca elemen layar</span>
               </div>
               <button
-                onClick={() => { props.setVoiceEnabled(!props.voiceEnabled); speak(props.voiceEnabled ? "Pemandu suara dinonaktifkan." : "Pemandu suara diaktifkan."); }}
+                onClick={() => {
+                  const nextVal = !props.voiceEnabled;
+                  if (nextVal) {
+                    props.setVoiceEnabled(true);
+                    setSpeechEnabled(true);
+                    speak("Pemandu suara diaktifkan.");
+                  } else {
+                    speak("Pemandu suara dinonaktifkan.");
+                    props.setVoiceEnabled(false);
+                    setSpeechEnabled(false);
+                  }
+                }}
                 style={{
                   background: props.voiceEnabled ? 'var(--accent-green)' : 'var(--border-color)',
                   color: props.voiceEnabled ? 'white' : 'var(--text-primary)',
@@ -960,6 +1045,32 @@ export default function MobileApp(props: MobileAppProps) {
                 {props.voiceEnabled ? 'AKTIF' : 'MATI'}
               </button>
             </div>
+
+            <button
+              onClick={() => {
+                props.onLogout?.();
+                setActiveDrawer(null);
+              }}
+              style={{
+                background: 'var(--accent-danger)',
+                color: 'white',
+                border: 'none',
+                padding: '10px',
+                borderRadius: '8px',
+                fontSize: 'calc(11px * var(--font-scale))',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                marginTop: '12px',
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(213,0,0,0.15)'
+              }}
+            >
+              🚪 Keluar Dari Akun (Logout)
+            </button>
 
           </div>
         </div>
